@@ -1,0 +1,53 @@
+{
+  "name": "bonk-launcher",
+  "version": "1.0.0",
+  "description": "A secure bonk.io launcher with frontend manipulation capabilities.",
+  "main": "dist/main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "npm run build && electron-builder --dir",
+    "dist": "npm run build && electron-builder",
+    "dev": "ts-node src/main.ts",
+    "build": "tsc"
+  },
+  "keywords": [
+    "electron",
+    "typescript",
+    "bonk.io",
+    "launcher"
+  ],
+  "author": "",
+  "license": "ISC",
+  "build": {
+    "appId": "com.yourcompany.bonklauncher",
+    "productName": "Bonk.io Launcher",
+    "copyright": "Copyright © 2025 ${author}",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*",
+      "package.json",
+      "frontend-mod.js"
+    ],
+    "win": {
+      "target": "appx",
+      "icon": "icon.png"
+    },
+    "appx": {
+      "publisher": "CN=YourPublisherID",
+      "publisherDisplayName": "Your Publisher Name",
+      "applicationId": "YourIdentityName"
+
+    }
+  },
+  "devDependencies": {
+    "@types/electron": "latest",
+    "@types/node": "^20.12.12",
+    "electron": "^30.0.9",
+    "electron-builder": "^26.0.12",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
