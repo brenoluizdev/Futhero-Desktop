@@ -1,14 +1,12 @@
 {
-  "name": "bonk-launcher",
+  "name": "futhero-desktop",
   "version": "1.0.0",
-  "description": "A secure bonk.io launcher with frontend manipulation capabilities.",
+  "description": "A secure bonk.io and haxball launcher with frontend manipulation capabilities.",
   "main": "dist/main.js",
   "scripts": {
-    "start": "electron .",
-    "pack": "npm run build && electron-builder --dir",
-    "dist": "npm run build && electron-builder",
-    "dev": "ts-node src/main.ts",
-    "build": "tsc"
+    "dev": "npm run build && electron .",
+    "build": "tsc",
+    "start": "electron ."
   },
   "keywords": [
     "electron",
@@ -39,7 +37,6 @@
       "publisher": "CN=YourPublisherID",
       "publisherDisplayName": "Your Publisher Name",
       "applicationId": "YourIdentityName"
-
     }
   },
   "devDependencies": {
@@ -49,5 +46,8 @@
     "electron-builder": "^26.0.12",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3"
   }
 }
