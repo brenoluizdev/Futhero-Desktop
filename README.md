@@ -38,7 +38,8 @@ Before starting, make sure you have:
 
 1. **Clone the repository (or navigate to your project folder):**
    ```bash
-   cd futhero-launcher
+   git clone https://github.com/brenoluizdev/Futhero-Desktop.git
+   cd futhero-desktop
    ```
 
 2. **Install dependencies:**
