@@ -19,15 +19,14 @@
   "build": {
     "appId": "com.yourcompany.bonklauncher",
     "productName": "Bonk.io Launcher",
-    "copyright": "Copyright © 2025 ${author}",
+    "copyright": "Copyright © 2025 brenoluizdev",
     "directories": {
       "output": "release"
     },
     "files": [
       "dist/**/*",
       "node_modules/**/*",
-      "package.json",
-      "frontend-mod.js"
+      "package.json"
     ],
     "win": {
       "target": "appx",

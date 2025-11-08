@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
+import * as path from 'path';
 
 const bonkLauncherAPI = {
   sendNotification: (message: string) => {
@@ -7,19 +8,15 @@ const bonkLauncherAPI = {
 
   injectFrontendScript: () => {
     const script = document.createElement('script');
-    script.src = 'frontend-mod.js';
+    script.src = path.join('file://', __dirname, 'scripts/index.js');
     script.onload = () => {
-      console.log('Frontend modification script injected successfully.');
+      console.log('[Launcher] Frontend modification script injected successfully.');
     };
     document.body.appendChild(script);
-  }
+  },
 };
 
 contextBridge.exposeInMainWorld('bonkLauncherAPI', bonkLauncherAPI);
-
-window.addEventListener('DOMContentLoaded', () => {
-
-});
 
 window.addEventListener('DOMContentLoaded', () => {
   bonkLauncherAPI.injectFrontendScript();

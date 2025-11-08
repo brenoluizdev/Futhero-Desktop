@@ -20,7 +20,7 @@ function createWindow() {
 
   mainWindow.loadURL(BONK_IO_URL);
 
-  if (process.env.NODE_ENV === 'development') mainWindow.webContents.openDevTools();
+  // if (process.env.NODE_ENV === 'development') mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {
