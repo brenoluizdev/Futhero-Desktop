@@ -4,38 +4,47 @@
   "description": "A secure bonk.io and haxball launcher with frontend manipulation capabilities.",
   "main": "dist/main.js",
   "scripts": {
-    "dev": "npm run build && electron .",
+    "dev": "tsc && electron .",
     "build": "tsc",
-    "start": "electron ."
+    "start": "electron .",
+    "generate-icons": "node scripts/generate-icons.js",
+    "generate-store": "npm run build && npm run generate-icons && electron-builder --win appx --x64"
   },
-  "keywords": [
-    "electron",
-    "typescript",
-    "bonk.io",
-    "launcher"
-  ],
-  "author": "",
+  "author": "Breno Luiz",
   "license": "ISC",
   "build": {
-    "appId": "com.yourcompany.bonklauncher",
-    "productName": "Bonk.io Launcher",
-    "copyright": "Copyright © 2025 brenoluizdev",
+    "appId": "com.brenoluizdev.futhero",
+    "productName": "Futhero",
+    "copyright": "Copyright © 2025 Breno Luiz",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
     },
     "files": [
       "dist/**/*",
+      "assets/**/*",
       "node_modules/**/*",
       "package.json"
     ],
     "win": {
-      "target": "appx",
-      "icon": "icon.png"
+      "target": [
+        {
+          "target": "appx",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.ico"
     },
     "appx": {
-      "publisher": "CN=YourPublisherID",
-      "publisherDisplayName": "Your Publisher Name",
-      "applicationId": "YourIdentityName"
+      "identityName": "brenoluizdev.Futhero",
+      "publisher": "CN=32257FCD-A3F3-4041-841E-D735BDA06622",
+      "publisherDisplayName": "brenoluizdev",
+      "applicationId": "Futhero",
+      "displayName": "Futhero",
+      "backgroundColor": "#202020",
+      "showNameOnTiles": true,
+      "addAutoLaunchExtension": false,
+      "languages": ["pt-BR", "en-US"]
     }
   },
   "devDependencies": {
@@ -44,7 +53,7 @@
     "electron": "^30.0.9",
     "electron-builder": "^26.0.12",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "dotenv": "^17.2.3"
