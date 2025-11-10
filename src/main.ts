@@ -28,9 +28,7 @@ function createWindow() {
 
   mainWindow.loadURL(GAME_URL);
 
-  if (!app.isPackaged) {
-    mainWindow.webContents.openDevTools({ mode: "detach" });
-  } else {
+  if (app.isPackaged) {
     Menu.setApplicationMenu(null);
   }
 

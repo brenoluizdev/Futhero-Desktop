@@ -4,7 +4,6 @@ import * as path from "path";
 window.addEventListener("DOMContentLoaded", () => {
   const logoPath = path.join(__dirname, "../assets/images/icon.png");
 
-  // === Remove qualquer possibilidade de scroll da página ===
   document.documentElement.style.overflow = "hidden";
   document.body.style.overflow = "hidden";
 
@@ -45,13 +44,40 @@ window.addEventListener("DOMContentLoaded", () => {
     text.style.margin = "40px";
     bgTextContainer.appendChild(text);
   }
-
+  
   const logo = document.createElement("img");
   logo.src = "file://" + logoPath.replace(/\\/g, "/");
   logo.style.width = "180px";
   logo.style.height = "180px";
   logo.style.opacity = "0";
   logo.style.animation = "zoomLogo 2.5s ease forwards";
+
+  const loadingContainer = document.createElement("div");
+  loadingContainer.style.position = "fixed";
+  loadingContainer.style.bottom = "20px";
+  loadingContainer.style.right = "20px";
+  loadingContainer.style.display = "flex";
+  loadingContainer.style.alignItems = "center";
+  loadingContainer.style.gap = "10px";
+  loadingContainer.style.zIndex = "10000";
+
+  const spinner = document.createElement("div");
+  spinner.style.width = "16px";
+  spinner.style.height = "16px";
+  spinner.style.border = "2px solid transparent";
+  spinner.style.borderTop = "2px solid #00FF00";
+  spinner.style.borderRadius = "50%";
+  spinner.style.animation = "spin 1s linear infinite";
+
+  const loadingText = document.createElement("span");
+  loadingText.textContent = "Loading...";
+  loadingText.style.color = "#fff";
+  loadingText.style.fontFamily = "'Poppins', sans-serif";
+  loadingText.style.fontWeight = "600";
+  loadingText.style.fontSize = "1.1rem";
+
+  loadingContainer.appendChild(spinner);
+  loadingContainer.appendChild(loadingText);
 
   const style = document.createElement("style");
   style.textContent = `
@@ -60,16 +86,20 @@ window.addEventListener("DOMContentLoaded", () => {
       50% { transform: scale(1.15); opacity: 1; }
       100% { transform: scale(1); opacity: 1; }
     }
-
     @keyframes moveBackground {
       0% { transform: translate(0, 0); }
       100% { transform: translate(-10%, -10%); }
     }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   `;
-
   document.head.appendChild(style);
+
   overlay.appendChild(bgTextContainer);
   overlay.appendChild(logo);
+  overlay.appendChild(loadingContainer);
   document.body.appendChild(overlay);
 
   window.addEventListener("load", () => {
@@ -83,6 +113,6 @@ window.addEventListener("DOMContentLoaded", () => {
 const bonkLauncherAPI = {
   sendNotification: (message: string) => ipcRenderer.send("notification", message),
 };
-
 contextBridge.exposeInMainWorld("bonkLauncherAPI", bonkLauncherAPI);
+
 console.log("[Preload] Futhero splash screen loaded.");
