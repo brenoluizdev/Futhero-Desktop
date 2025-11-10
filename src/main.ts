@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu } from "electron";
+import { app, BrowserWindow, Menu, protocol } from "electron";
 import * as path from "path";
 import * as fs from "fs";
 import { GameUrls, GameType } from "./types/games.types";
@@ -39,15 +39,26 @@ function createWindow() {
 
   mainWindow.webContents.on("did-finish-load", () => {
     const scriptsDir = path.join(__dirname, "scripts");
-    const scriptFiles = fs
-      .readdirSync(scriptsDir)
-      .filter((file) => file.endsWith(".js") && file !== "index.js");
 
-    for (const file of scriptFiles) {
-      const scriptPath = path.join(scriptsDir, file);
+    const getScriptsRecursive = (dir: string): string[] =>
+      fs.readdirSync(dir).flatMap((file) => {
+        const full = path.join(dir, file);
+        return fs.statSync(full).isDirectory()
+          ? getScriptsRecursive(full)
+          : [full];
+      });
+
+    const scripts = getScriptsRecursive(scriptsDir).filter((f) =>
+      f.endsWith(".js")
+    );
+
+    console.log(scripts);
+
+    for (const scriptPath of scripts) {
       const scriptCode = fs.readFileSync(scriptPath, "utf8");
       mainWindow.webContents.executeJavaScript(scriptCode);
-      console.log(`[Launcher] Injected script: ${file}`);
+
+      console.log(`[Launcher] Injected script: ${path.basename(scriptPath)}`);
     }
 
     console.log("[Launcher] All frontend scripts injected successfully.");
@@ -56,7 +67,42 @@ function createWindow() {
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
 }
 
+function getMime(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+
+  switch (ext) {
+    case ".css":
+      return "text/css";
+    case ".js":
+      return "text/javascript";
+    case ".json":
+      return "application/json";
+    case ".png":
+      return "image/png";
+    case ".jpg":
+    case ".jpeg":
+      return "image/jpeg";
+    case ".svg":
+      return "image/svg+xml";
+    case ".html":
+      return "text/html";
+    default:
+      return "application/octet-stream";
+  }
+}
+
 app.whenReady().then(() => {
+  protocol.handle("app", async (request) => {
+    const url = request.url.replace("app://", "");
+    const filePath = path.join(__dirname, url);
+
+    return new Response(await fs.promises.readFile(filePath), {
+      headers: {
+        "content-type": getMime(filePath),
+      },
+    });
+  });
+
   createWindow();
 
   app.on("activate", () => {

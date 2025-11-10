@@ -1,9 +1,15 @@
 {
-  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist/scripts",
+    "target": "ES2020",
+    "module": "commonjs",
     "rootDir": "src/scripts",
-    "noEmitOnError": false
+    "outDir": "dist/scripts",
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "allowArbitraryExtensions": true
   },
   "include": ["src/scripts/**/*"],
   "exclude": ["node_modules"]

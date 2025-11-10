@@ -11,5 +11,6 @@
     "sourceMap": true,
     "types": ["node", "electron"]
   },
-  "exclude": ["src/scripts"]
+  "include": ["src/**/*"],
+  "exclude": ["src/scripts", "dist", "node_modules"]
 }

@@ -5,8 +5,9 @@
   "main": "dist/main.js",
   "scripts": {
     "dev": "npm run build && electron .",
-    "build": "tsc -p tsconfig.json && tsc -p tsconfig.scripts.json && npm run copy-assets",
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.scripts.json && npm run copy-assets && npm run copy-scripts-static",
     "copy-assets": "xcopy assets dist\\assets /E /I /Y",
+    "copy-scripts-static": "node scripts/copy-static.js",
     "start": "electron .",
     "generate-icons": "node scripts/generate-icons.js",
     "generate-store": "npm run build && npm run generate-icons && electron-builder --win appx --x64"
