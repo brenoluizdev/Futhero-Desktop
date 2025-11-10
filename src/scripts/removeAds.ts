@@ -1,6 +1,8 @@
-export function removeAds() {
+(() => {
+  console.log('[Launcher] Bonk.io ad cleaner initialized.');
+
   const remove = () => {
-    const bonkAdIds = ['bonk_d_1', 'bonk_d_2'];
+    const bonkAdIds = ['adboxverticalleftCurse', 'adboxverticalrightCurse', 'bonk_d_1', 'bonk_d_2'];
 
     const adSelectors = [
       'iframe[id^="google_ads_iframe_"]',
@@ -31,40 +33,14 @@ export function removeAds() {
 
     document.querySelectorAll(adSelectors.join(',')).forEach(el => {
       if (el.id === 'maingameframe' || el.closest('#maingameframe')) return;
-
-      const parent = el.parentElement;
-      if (parent && parent.childElementCount === 1 && parent.tagName !== 'BODY') {
-        parent.remove();
-      } else {
-        el.remove();
-      }
-    });
-
-    document.querySelectorAll('div').forEach(div => {
-      if (div.closest('#maingameframe')) return;
-
-      const id = div.id?.toLowerCase() || '';
-      const cls = div.className?.toLowerCase() || '';
-
-      if (
-        id.startsWith('bonk_d_') ||
-        id.includes('ads') ||
-        id.includes('google_ads') ||
-        id.includes('lngtd') ||
-        cls.includes('ads') ||
-        cls.includes('ad-container')
-      ) {
-        div.remove();
-      }
+      el.remove();
     });
   };
 
   const observer = new MutationObserver(remove);
   observer.observe(document.body, { childList: true, subtree: true });
-
   setInterval(remove, 800);
-
   remove();
 
-  console.log('[Launcher] Bonk.io ad cleaner (full aggressive mode) initialized.');
-}
+  console.log('[Launcher] Ad removal in aggressive mode.');
+})();

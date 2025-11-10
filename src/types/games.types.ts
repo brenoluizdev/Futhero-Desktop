@@ -4,8 +4,8 @@ export enum GameType {
 }
 
 export const GameUrls: Record<GameType, string> = {
-  [GameType.BONKIO]: 'https://bonk.io',
-  [GameType.HAXBALL]: 'https://haxball.com',
+  [GameType.BONKIO]: 'https://bonk.io/',
+  [GameType.HAXBALL]: 'https://haxball.com/',
 };
 
 export interface Game {

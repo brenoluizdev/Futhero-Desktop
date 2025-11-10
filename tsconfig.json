@@ -8,7 +8,8 @@
     "esModuleInterop": true,
     "moduleResolution": "node",
     "skipLibCheck": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "types": ["node", "electron"]
   },
-  "include": ["src/**/*", "assets/**/*"]
+  "exclude": ["src/scripts"]
 }

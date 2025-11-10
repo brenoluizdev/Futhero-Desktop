@@ -4,13 +4,13 @@
   "description": "A secure bonk.io and haxball launcher with frontend manipulation capabilities.",
   "main": "dist/main.js",
   "scripts": {
-    "dev": "tsc && electron .",
-    "build": "tsc",
+    "dev": "npm run build && electron .",
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.scripts.json",
     "start": "electron .",
     "generate-icons": "node scripts/generate-icons.js",
     "generate-store": "npm run build && npm run generate-icons && electron-builder --win appx --x64"
   },
-  "author": "Breno Luiz",
+  "author": "brenoluizdev",
   "license": "ISC",
   "build": {
     "appId": "com.brenoluizdev.futhero",
