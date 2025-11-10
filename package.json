@@ -1,11 +1,12 @@
 {
-  "name": "futhero-desktop",
+  "name": "futhero-launcher",
   "version": "1.0.0",
   "description": "A secure bonk.io and haxball launcher with frontend manipulation capabilities.",
   "main": "dist/main.js",
   "scripts": {
     "dev": "npm run build && electron .",
-    "build": "tsc -p tsconfig.json && tsc -p tsconfig.scripts.json",
+    "build": "tsc -p tsconfig.json && tsc -p tsconfig.scripts.json && npm run copy-assets",
+    "copy-assets": "xcopy assets dist\\assets /E /I /Y",
     "start": "electron .",
     "generate-icons": "node scripts/generate-icons.js",
     "generate-store": "npm run build && npm run generate-icons && electron-builder --win appx --x64"
@@ -30,7 +31,9 @@
       "target": [
         {
           "target": "appx",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "build/icon.ico"
@@ -44,13 +47,16 @@
       "backgroundColor": "#202020",
       "showNameOnTiles": true,
       "addAutoLaunchExtension": false,
-      "languages": ["pt-BR", "en-US"]
+      "languages": [
+        "pt-BR",
+        "en-US"
+      ]
     }
   },
   "devDependencies": {
     "@types/electron": "latest",
     "@types/node": "^20.12.12",
-    "electron": "^30.0.9",
+    "electron": "^39.1.1",
     "electron-builder": "^26.0.12",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"

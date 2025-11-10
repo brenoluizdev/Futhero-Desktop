@@ -29,8 +29,6 @@ function createWindow() {
   mainWindow.loadURL(GAME_URL);
   Menu.setApplicationMenu(null);
 
-  mainWindow.loadURL(GAME_URL);
-
   mainWindow.on("page-title-updated", (event) => {
     event.preventDefault();
     mainWindow.setTitle("Futhero Launcher");
