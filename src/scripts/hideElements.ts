@@ -1,6 +1,9 @@
 (() => {
   const hide = () => {
-    const elements = ['#cookieBanner', '#promoPopup'];
+    const elements = [
+      '#cookieBanner', '#promoPopup', '#bonkioheader', 
+      '#adboxverticalCurse', '#descriptioncontainer'
+    ];
     elements.forEach(sel => document.querySelector(sel)?.remove());
   };
 

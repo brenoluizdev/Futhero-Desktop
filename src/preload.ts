@@ -4,6 +4,10 @@ import * as path from "path";
 window.addEventListener("DOMContentLoaded", () => {
   const logoPath = path.join(__dirname, "../assets/images/icon.png");
 
+  // === Remove qualquer possibilidade de scroll da página ===
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
+
   const overlay = document.createElement("div");
   overlay.id = "futhero-loader";
   overlay.style.position = "fixed";

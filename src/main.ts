@@ -27,7 +27,12 @@ function createWindow() {
   });
 
   mainWindow.loadURL(GAME_URL);
-  Menu.setApplicationMenu(null);
+
+  if (!app.isPackaged) {
+    mainWindow.webContents.openDevTools({ mode: "detach" });
+  } else {
+    Menu.setApplicationMenu(null);
+  }
 
   mainWindow.on("page-title-updated", (event) => {
     event.preventDefault();
