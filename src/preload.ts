@@ -105,14 +105,29 @@ window.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("load", () => {
     setTimeout(() => {
       overlay.style.opacity = "0";
-      setTimeout(() => overlay.remove(), 1000);
+      setTimeout(() => {
+        overlay.remove();
+        document.documentElement.style.overflow = "";
+        document.body.style.overflow = "";
+      }, 1000);
     }, 2500);
   });
 });
 
-const bonkLauncherAPI = {
-  sendNotification: (message: string) => ipcRenderer.send("notification", message),
+const futheroLauncherAPI = {
+  sendNotification: (message: string) => 
+    ipcRenderer.send("notification", message),
+  
+  switchGame: (gameType: string) => 
+    ipcRenderer.send("switch-game", gameType),
+  
+  getCurrentUrl: () => window.location.href,
+  
+  log: (message: string) => 
+    console.log(`[Futhero] ${message}`),
 };
-contextBridge.exposeInMainWorld("bonkLauncherAPI", bonkLauncherAPI);
 
-console.log("[Preload] Futhero splash screen loaded.");
+contextBridge.exposeInMainWorld("futheroLauncherAPI", futheroLauncherAPI);
+
+console.log("[Preload] Futhero Launcher initialized.");
+console.log("[Preload] API exposed: futheroLauncherAPI");
