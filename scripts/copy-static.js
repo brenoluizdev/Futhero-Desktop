@@ -1,0 +1,34 @@
+const fs = require("fs");
+const path = require("path");
+
+const rendererSrc = path.join(__dirname, "../src/renderer");
+const rendererDest = path.join(__dirname, "../dist/renderer");
+
+const assetsSrc = path.join(__dirname, "../src/assets");
+const assetsDest = path.join(__dirname, "../dist/assets");
+
+const allowed = [".html", ".css", ".png", ".jpg", ".jpeg", ".svg"];
+
+function copyFolder(src, dest) {
+    if (!fs.existsSync(dest)) {
+        fs.mkdirSync(dest, { recursive: true });
+    }
+
+    for (const item of fs.readdirSync(src)) {
+        const srcPath = path.join(src, item);
+        const destPath = path.join(dest, item);
+        const stat = fs.statSync(srcPath);
+
+        if (stat.isDirectory()) {
+            copyFolder(srcPath, destPath);
+        } else if (allowed.includes(path.extname(item))) {
+            fs.copyFileSync(srcPath, destPath);
+            console.log("Copied:", destPath);
+        }
+    }
+}
+
+copyFolder(rendererSrc, rendererDest);
+copyFolder(assetsSrc, assetsDest);
+
+console.log("Static files copied!");
