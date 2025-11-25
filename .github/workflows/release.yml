@@ -20,12 +20,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Build app
+      - name: Build and Publish app
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: npm run build:win
-
-      - name: Publish to GitHub Releases
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: npx electron-builder --win --publish always
