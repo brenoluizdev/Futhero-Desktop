@@ -26,10 +26,15 @@
     "files": [
       "dist/**/*",
       "assets/**/*",
-      "scripts/**/*",
       "!node_modules/.cache/**/*",
       "node_modules/**/*",
       "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "dist/scripts",
+        "to": "scripts"
+      }
     ],
     "win": {
       "target": [

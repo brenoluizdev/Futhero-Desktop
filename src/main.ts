@@ -15,8 +15,13 @@ function detectGameType(url: string): GameType | null {
 }
 
 function getGameScripts(gameType: GameType | null): string[] {
+  const isDev = !app.isPackaged;
   const scriptsDir = path.join(__dirname, "scripts");
   const sharedScripts = path.join(scriptsDir, "shared");
+
+  console.log(`[Launcher] isDev: ${isDev}`);
+  console.log(`[Launcher] __dirname: ${__dirname}`);
+  console.log(`[Launcher] scriptsDir: ${scriptsDir}`);
 
   let gameSpecificDir: string | null = null;
 
@@ -29,7 +34,10 @@ function getGameScripts(gameType: GameType | null): string[] {
   const allScripts: string[] = [];
 
   const getScriptsRecursive = (dir: string): string[] => {
-    if (!fs.existsSync(dir)) return [];
+    if (!fs.existsSync(dir)) {
+      console.log(`[Launcher] Diretório não existe: ${dir}`);
+      return [];
+    }
 
     return fs.readdirSync(dir).flatMap((file) => {
       const full = path.join(dir, file);
@@ -48,6 +56,7 @@ function getGameScripts(gameType: GameType | null): string[] {
     allScripts.push(...getScriptsRecursive(gameSpecificDir));
   }
 
+  console.log(`[Launcher] Total de scripts encontrados: ${allScripts.length}`);
   return allScripts;
 }
 
@@ -70,11 +79,13 @@ function createWindow() {
       sandbox: false,
       nodeIntegration: false,
       webSecurity: false,
-      devTools: false,
+      devTools: isDev,
     },
   });
 
-  autoUpdater.checkForUpdatesAndNotify();
+  if (!isDev) {
+    autoUpdater.checkForUpdatesAndNotify();
+  }
 
   antiCheatCore = new AntiCheatCore({
     enableMemoryProtection: true,
@@ -185,16 +196,29 @@ autoUpdater.on("update-downloaded", () => {
 });
 
 app.whenReady().then(() => {
-  protocol.handle("app", async (request) => {
-    const url = request.url.replace("app://", "");
-    const filePath = path.join(__dirname, url);
+  const isDev = !app.isPackaged;
 
+  protocol.handle("app", async (request) => {
     try {
+      const url = request.url.replace("app://", "");
+      
+      const filePath = path.join(__dirname, url);
+
+      console.log(`[Launcher] Protocol handler - URL requisitada: ${url}`);
+      console.log(`[Launcher] Protocol handler - Caminho resolvido: ${filePath}`);
+
+      if (!fs.existsSync(filePath)) {
+        console.error(`[Launcher] Arquivo não encontrado: ${filePath}`);
+        return new Response("Not found", { status: 404 });
+      }
+
       const content = await fs.promises.readFile(filePath);
-      return new Response(content, { headers: { "content-type": getMime(filePath) } });
+      return new Response(content, { 
+        headers: { "content-type": getMime(filePath) } 
+      });
     } catch (err) {
-      console.error("[Launcher] Erro ao carregar recurso:", filePath, err);
-      return new Response("Not found", { status: 404 });
+      console.error("[Launcher] Erro ao carregar recurso:", err);
+      return new Response("Internal error", { status: 500 });
     }
   });
 
