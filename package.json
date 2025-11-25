@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "A secure bonk.io and haxball launcher with frontend manipulation capabilities.",
   "main": "dist/main.js",
-
   "scripts": {
     "dev": "npm run build && electron .",
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.scripts.json && npm run copy-assets && npm run copy-scripts-static",
@@ -13,23 +12,17 @@
     "copy-assets": "xcopy assets dist\\assets /E /I /Y",
     "copy-scripts-static": "node scripts/copy-static.js",
     "start": "electron .",
-    "generate-icons": "node scripts/generate-icons.js",
-    "generate-store": "npm run build && npm run generate-icons && electron-builder --win appx --x64"
+    "generate-icons": "node scripts/generate-icons.js"
   },
-
   "author": "brenoluizdev",
   "license": "ISC",
-
   "build": {
     "appId": "com.brenoluizdev.futhero",
     "productName": "Futhero",
-    "copyright": "Copyright © 2025 Breno Luiz",
-
     "directories": {
       "output": "release",
       "buildResources": "build"
     },
-
     "files": [
       "dist/**/*",
       "assets/**/*",
@@ -38,18 +31,20 @@
       "node_modules/**/*",
       "package.json"
     ],
-
     "win": {
       "target": [
-        {
-          "target": "appx",
-          "arch": ["x64"]
-        }
+        "nsis"
       ],
       "icon": "build/icon.ico"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "brenoluizdev",
+        "repo": "Futhero_Desktop"
+      }
+    ]
   },
-
   "devDependencies": {
     "@types/electron": "latest",
     "@types/node": "^20.12.12",
@@ -58,8 +53,8 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
-
   "dependencies": {
-    "dotenv": "^17.2.3"
+    "dotenv": "^17.2.3",
+    "electron-updater": "^6.6.2"
   }
 }

@@ -1,8 +1,9 @@
-import { app, BrowserWindow, Menu, protocol, ipcMain } from "electron";
+import { app, BrowserWindow, Menu, protocol, ipcMain, dialog } from "electron";
 import * as path from "path";
 import * as fs from "fs";
 import { GameUrls, GameType } from "./types/games.types";
 import { AntiCheatCore } from "./core/AntiCheatCore";
+import { autoUpdater } from "electron-updater";
 require("dotenv").config();
 
 let antiCheatCore: AntiCheatCore | null = null;
@@ -72,6 +73,8 @@ function createWindow() {
       devTools: false,
     },
   });
+
+  autoUpdater.checkForUpdatesAndNotify();
 
   antiCheatCore = new AntiCheatCore({
     enableMemoryProtection: true,
@@ -165,6 +168,21 @@ function getMime(filePath: string): string {
 
   return mimeTypes[ext] || "application/octet-stream";
 }
+
+autoUpdater.on("update-available", () => {
+  console.log("Nova atualização disponível!");
+});
+
+autoUpdater.on("update-downloaded", () => {
+  dialog.showMessageBox({
+    type: "info",
+    title: "Atualização pronta",
+    message: "Uma nova versão foi baixada. O app será reiniciado para instalar a atualização.",
+    buttons: ["Reiniciar agora"]
+  }).then(() => {
+    autoUpdater.quitAndInstall();
+  });
+});
 
 app.whenReady().then(() => {
   protocol.handle("app", async (request) => {
