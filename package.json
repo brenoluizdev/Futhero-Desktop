@@ -1,6 +1,6 @@
 {
   "name": "futhero-launcher",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "A secure bonk.io and haxball launcher with frontend manipulation capabilities.",
   "main": "dist/main.js",
   "scripts": {
@@ -9,8 +9,8 @@
     "build:win": "npm run build && electron-builder --win",
     "build:linux": "npm run build && electron-builder --linux",
     "build:mac": "npm run build && electron-builder --mac",
-    "copy-assets": "xcopy assets dist\\assets /E /I /Y",
-    "copy-scripts-static": "node scripts/copy-static.js",
+    "copy-assets": "node scripts/copy-assets.js",
+    "copy-scripts-static": "node scripts/copy-scripts-static.js",
     "start": "electron .",
     "generate-icons": "node scripts/generate-icons.js"
   },
@@ -53,14 +53,14 @@
   "devDependencies": {
     "@types/electron": "latest",
     "@types/node": "^20.12.12",
-    "electron": "^39.1.1",
-    "electron-builder": "^26.0.12",
+    "electron": "^29.1.1",
+    "electron-builder": "^24.13.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.4.5"
   },
   "dependencies": {
-    "dotenv": "^17.2.3",
+    "dotenv": "^16.4.5",
     "electron-is-dev": "^3.0.1",
-    "electron-updater": "^6.6.2"
+    "electron-updater": "^6.2.1"
   }
 }
