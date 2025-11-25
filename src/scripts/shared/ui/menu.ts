@@ -96,7 +96,6 @@
       position: relative;
     `;
 
-    // Botão de fechar
     const closeBtn = document.createElement("button");
     closeBtn.innerHTML = `
       <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -140,15 +139,27 @@
     const pages = {
       home: createHomePage(),
       game: createGamePage(),
+      performance: createPerformancePage(),
       discord: createDiscordPage(),
-      settings: createSettingsPage()
+      settings: createSettingsPage(),
     };
 
     const menuItems = [
       { id: "home", icon: "🏠", label: "Início", page: pages.home },
       { id: "game", icon: "🎮", label: "Jogos", page: pages.game },
+      {
+        id: "performance",
+        icon: "⚡",
+        label: "Performance",
+        page: pages.performance,
+      },
       { id: "discord", icon: "💬", label: "Discord", page: pages.discord },
-      { id: "settings", icon: "⚙️", label: "Configurações", page: pages.settings }
+      {
+        id: "settings",
+        icon: "⚙️",
+        label: "Configurações",
+        page: pages.settings,
+      },
     ];
 
     menuItems.forEach((item, index) => {
@@ -186,7 +197,7 @@
       });
 
       btn.addEventListener("click", () => {
-        sidebar.querySelectorAll("div").forEach(el => {
+        sidebar.querySelectorAll("div").forEach((el) => {
           (el as HTMLElement).style.background = "transparent";
           (el as HTMLElement).style.color = "#96989d";
         });
@@ -277,7 +288,9 @@
         Gerenciar Jogos
       </h1>
       <p style="color: #b9bbbe; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 0 0 32px 0;">
-        Você está jogando: <span style="color: #667eea; font-weight: 600;">${isHaxball ? "Haxball" : isBonk ? "Bonk.io" : "Nenhum"}</span>
+        Você está jogando: <span style="color: #667eea; font-weight: 600;">${
+          isHaxball ? "Haxball" : isBonk ? "Bonk.io" : "Nenhum"
+        }</span>
       </p>
       
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
@@ -373,6 +386,366 @@
     return page;
   }
 
+  function createPerformancePage() {
+    const page = document.createElement("div");
+
+    const settings = {
+      unlockFPS: localStorage.getItem("fh_unlock_fps") === "true",
+      hardwareAccel: localStorage.getItem("fh_hardware_accel") === "true",
+      lowLatency: localStorage.getItem("fh_low_latency") === "true",
+      disableAnimations:
+        localStorage.getItem("fh_disable_animations") === "true",
+      prioritizePerformance:
+        localStorage.getItem("fh_prioritize_perf") === "true",
+    };
+
+    page.innerHTML = `
+    <h1 style="color: #fff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 24px; font-weight: 600; margin: 0 0 8px 0;">
+      ⚡ Performance & Otimização
+    </h1>
+    <p style="color: #b9bbbe; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 0 0 32px 0;">
+      Configure opções avançadas para melhorar o desempenho nos jogos
+    </p>
+    
+    <div style="background: #2f3136; padding: 24px; border-radius: 8px; margin-bottom: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div>
+          <h3 style="color: #fff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; margin: 0 0 8px 0;">
+            🚀 Destravar Limite de FPS
+          </h3>
+          <p style="color: #b9bbbe; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 0; line-height: 1.6;">
+            Remove o limite de 60 FPS do navegador, permitindo taxas de quadros mais altas
+          </p>
+        </div>
+        <label class="fh-toggle">
+          <input type="checkbox" id="toggle-fps" ${
+            settings.unlockFPS ? "checked" : ""
+          }>
+          <span class="fh-toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div style="background: #2f3136; padding: 24px; border-radius: 8px; margin-bottom: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div>
+          <h3 style="color: #fff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; margin: 0 0 8px 0;">
+            🎮 Aceleração de Hardware
+          </h3>
+          <p style="color: #b9bbbe; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 0; line-height: 1.6;">
+            Usa a GPU para renderização, melhorando significativamente a performance
+          </p>
+        </div>
+        <label class="fh-toggle">
+          <input type="checkbox" id="toggle-hardware" ${
+            settings.hardwareAccel ? "checked" : ""
+          }>
+          <span class="fh-toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div style="background: #2f3136; padding: 24px; border-radius: 8px; margin-bottom: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div>
+          <h3 style="color: #fff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; margin: 0 0 8px 0;">
+            ⚡ Modo Baixa Latência
+          </h3>
+          <p style="color: #b9bbbe; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 0; line-height: 1.6;">
+            Reduz o input lag e melhora a responsividade dos controles
+          </p>
+        </div>
+        <label class="fh-toggle">
+          <input type="checkbox" id="toggle-latency" ${
+            settings.lowLatency ? "checked" : ""
+          }>
+          <span class="fh-toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div style="background: #2f3136; padding: 24px; border-radius: 8px; margin-bottom: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div>
+          <h3 style="color: #fff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; margin: 0 0 8px 0;">
+            🎯 Desativar Animações Desnecessárias
+          </h3>
+          <p style="color: #b9bbbe; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 0; line-height: 1.6;">
+            Remove efeitos visuais e animações decorativas para ganho de FPS
+          </p>
+        </div>
+        <label class="fh-toggle">
+          <input type="checkbox" id="toggle-animations" ${
+            settings.disableAnimations ? "checked" : ""
+          }>
+          <span class="fh-toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div style="background: #2f3136; padding: 24px; border-radius: 8px; margin-bottom: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div>
+          <h3 style="color: #fff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; margin: 0 0 8px 0;">
+            🔥 Priorizar Performance Total
+          </h3>
+          <p style="color: #b9bbbe; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 0; line-height: 1.6;">
+            Aplica todas as otimizações disponíveis (recomendado para PCs mais fracos)
+          </p>
+        </div>
+        <label class="fh-toggle">
+          <input type="checkbox" id="toggle-priority" ${
+            settings.prioritizePerformance ? "checked" : ""
+          }>
+          <span class="fh-toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 8px; margin-top: 24px;">
+      <h4 style="color: #fff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; margin: 0 0 12px 0;">
+        ℹ️ Informações do Sistema
+      </h4>
+      <div id="system-info" style="color: rgba(255,255,255,0.9); font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; line-height: 1.8;">
+        <div>🖥️ Núcleos: ${navigator.hardwareConcurrency || "N/A"}</div>
+        <div>💾 Memória: ${
+          (navigator as any).deviceMemory
+            ? (navigator as any).deviceMemory + " GB"
+            : "N/A"
+        }</div>
+        <div>🌐 Conexão: ${
+          (navigator as any).connection?.effectiveType || "N/A"
+        }</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 24px; text-align: center;">
+      <button id="apply-performance" style="
+        background: #43b581;
+        border: none;
+        color: white;
+        padding: 14px 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        transition: all 0.2s;
+        box-shadow: 0 4px 12px rgba(67, 181, 129, 0.4);
+      ">
+        ✓ Aplicar e Recarregar
+      </button>
+    </div>
+  `;
+
+    const toggleStyle = document.createElement("style");
+    toggleStyle.textContent = `
+    .fh-toggle {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .fh-toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .fh-toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #72767d;
+      transition: 0.3s;
+      border-radius: 34px;
+    }
+
+    .fh-toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    .fh-toggle input:checked + .fh-toggle-slider {
+      background-color: #43b581;
+    }
+
+    .fh-toggle input:checked + .fh-toggle-slider:before {
+      transform: translateX(24px);
+    }
+
+    .fh-toggle-slider:hover {
+      box-shadow: 0 0 8px rgba(67, 181, 129, 0.4);
+    }
+  `;
+    document.head.appendChild(toggleStyle);
+
+    setTimeout(() => {
+      const applyBtn = page.querySelector("#apply-performance");
+      const toggleFPS = page.querySelector("#toggle-fps") as HTMLInputElement;
+      const toggleHardware = page.querySelector(
+        "#toggle-hardware"
+      ) as HTMLInputElement;
+      const toggleLatency = page.querySelector(
+        "#toggle-latency"
+      ) as HTMLInputElement;
+      const toggleAnimations = page.querySelector(
+        "#toggle-animations"
+      ) as HTMLInputElement;
+      const togglePriority = page.querySelector(
+        "#toggle-priority"
+      ) as HTMLInputElement;
+
+      const saveSettings = () => {
+        localStorage.setItem("fh_unlock_fps", toggleFPS.checked.toString());
+        localStorage.setItem(
+          "fh_hardware_accel",
+          toggleHardware.checked.toString()
+        );
+        localStorage.setItem(
+          "fh_low_latency",
+          toggleLatency.checked.toString()
+        );
+        localStorage.setItem(
+          "fh_disable_animations",
+          toggleAnimations.checked.toString()
+        );
+        localStorage.setItem(
+          "fh_prioritize_perf",
+          togglePriority.checked.toString()
+        );
+      };
+
+      toggleFPS?.addEventListener("change", saveSettings);
+      toggleHardware?.addEventListener("change", saveSettings);
+      toggleLatency?.addEventListener("change", saveSettings);
+      toggleAnimations?.addEventListener("change", saveSettings);
+
+      togglePriority?.addEventListener("change", (e) => {
+        if ((e.target as HTMLInputElement).checked) {
+          toggleFPS.checked = true;
+          toggleHardware.checked = true;
+          toggleLatency.checked = true;
+          toggleAnimations.checked = true;
+        }
+        saveSettings();
+      });
+
+      applyBtn?.addEventListener("click", () => {
+        applyPerformanceSettings();
+        location.reload();
+      });
+    }, 0);
+
+    return page;
+  }
+
+  function applyPerformanceSettings() {
+    const settings = {
+      unlockFPS: localStorage.getItem("fh_unlock_fps") === "true",
+      hardwareAccel: localStorage.getItem("fh_hardware_accel") === "true",
+      lowLatency: localStorage.getItem("fh_low_latency") === "true",
+      disableAnimations:
+        localStorage.getItem("fh_disable_animations") === "true",
+      prioritizePerformance:
+        localStorage.getItem("fh_prioritize_perf") === "true",
+    };
+
+    if (settings.unlockFPS) {
+      try {
+        const style = document.createElement("style");
+        style.textContent = `
+        * {
+          image-rendering: -webkit-optimize-contrast !important;
+          image-rendering: crisp-edges !important;
+        }
+        canvas {
+          image-rendering: pixelated !important;
+        }
+      `;
+        document.head.appendChild(style);
+
+        console.log("[Futhero] FPS desbloqueado");
+      } catch (e) {
+        console.error("[Futhero] Erro ao desbloquear FPS:", e);
+      }
+    }
+
+    if (settings.hardwareAccel) {
+      try {
+        const canvases = document.querySelectorAll("canvas");
+        canvases.forEach((canvas) => {
+          const ctx = canvas.getContext("2d", {
+            alpha: false,
+            desynchronized: true,
+            willReadFrequently: false,
+          });
+        });
+        console.log("[Futhero] Aceleração de hardware ativada");
+      } catch (e) {
+        console.error("[Futhero] Erro na aceleração de hardware:", e);
+      }
+    }
+
+    if (settings.lowLatency) {
+      try {
+        document.addEventListener(
+          "keydown",
+          (e) => e.stopImmediatePropagation(),
+          true
+        );
+        document.addEventListener(
+          "keyup",
+          (e) => e.stopImmediatePropagation(),
+          true
+        );
+        document.addEventListener(
+          "mousedown",
+          (e) => e.stopImmediatePropagation(),
+          true
+        );
+        document.addEventListener(
+          "mouseup",
+          (e) => e.stopImmediatePropagation(),
+          true
+        );
+        console.log("[Futhero] Modo baixa latência ativado");
+      } catch (e) {
+        console.error("[Futhero] Erro no modo baixa latência:", e);
+      }
+    }
+
+    if (settings.disableAnimations) {
+      try {
+        const style = document.createElement("style");
+        style.textContent = `
+        * {
+          animation-duration: 0s !important;
+          animation-delay: 0s !important;
+          transition-duration: 0s !important;
+          transition-delay: 0s !important;
+        }
+      `;
+        document.head.appendChild(style);
+        console.log("[Futhero] Animações desativadas");
+      } catch (e) {
+        console.error("[Futhero] Erro ao desativar animações:", e);
+      }
+    }
+  }
+
   function createDiscordPage() {
     const page = document.createElement("div");
     page.innerHTML = `
@@ -442,15 +815,16 @@
       copyBtn?.addEventListener("click", () => {
         input.select();
         input.setSelectionRange(0, 99999);
-        
+
         try {
           document.execCommand("copy");
           (copyBtn as HTMLElement).textContent = "✓ Link Copiado!";
           (copyBtn as HTMLElement).style.background = "rgba(34, 197, 94, 0.8)";
-          
+
           setTimeout(() => {
             (copyBtn as HTMLElement).textContent = "📋 Copiar Link do Discord";
-            (copyBtn as HTMLElement).style.background = "rgba(255, 255, 255, 0.25)";
+            (copyBtn as HTMLElement).style.background =
+              "rgba(255, 255, 255, 0.25)";
           }, 2000);
         } catch (err) {
           console.error("Erro ao copiar:", err);
@@ -492,7 +866,7 @@
         <p style="color: #b9bbbe; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 0; line-height: 1.6;">
           <strong style="color: #fff;">Futhero Launcher</strong><br>
           Versão 1.0.8<br>
-          Desenvolvido com por brenoluizdev com ❤️ para a comunidade
+          Desenvolvido por brenoluizdev com ❤️ para a comunidade
         </p>
       </div>
     `;
@@ -501,5 +875,9 @@
 
   menuButton.addEventListener("click", () => {
     createMainMenu();
+  });
+
+  window.addEventListener("load", () => {
+    applyPerformanceSettings();
   });
 })();

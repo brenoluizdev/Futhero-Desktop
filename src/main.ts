@@ -6,6 +6,8 @@ import { AntiCheatCore } from "./core/AntiCheatCore";
 import { autoUpdater } from "electron-updater";
 require("dotenv").config();
 
+const isDev = require("electron-is-dev");
+
 let antiCheatCore: AntiCheatCore | null = null;
 
 function detectGameType(url: string): GameType | null {
@@ -63,8 +65,6 @@ function getGameScripts(gameType: GameType | null): string[] {
 let currentGameUrl = GameUrls[GameType.BONKIO];
 
 function createWindow() {
-  const isDev = !app.isPackaged;
-
   const iconPath = isDev
     ? path.join(__dirname, "../assets/images/icon.ico")
     : path.join(process.resourcesPath, "assets", "images", "icon.ico");
@@ -76,9 +76,9 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
-      sandbox: false,
+      sandbox: !isDev,
       nodeIntegration: false,
-      webSecurity: false,
+      webSecurity: !isDev,
       devTools: isDev,
     },
   });
@@ -130,10 +130,16 @@ function createWindow() {
         const scriptCode = fs.readFileSync(scriptPath, "utf8");
         mainWindow.webContents.executeJavaScript(scriptCode);
 
-        const relative = path.relative(path.join(__dirname, "scripts"), scriptPath);
+        const relative = path.relative(
+          path.join(__dirname, "scripts"),
+          scriptPath
+        );
         console.log(`[Launcher] [OK] ${relative}`);
       } catch (error) {
-        console.error(`[Launcher] ERRO ao injetar ${path.basename(scriptPath)}`, error);
+        console.error(
+          `[Launcher] ERRO ao injetar ${path.basename(scriptPath)}`,
+          error
+        );
       }
     }
 
@@ -185,14 +191,17 @@ autoUpdater.on("update-available", () => {
 });
 
 autoUpdater.on("update-downloaded", () => {
-  dialog.showMessageBox({
-    type: "info",
-    title: "Atualização pronta",
-    message: "Uma nova versão foi baixada. O app será reiniciado para instalar a atualização.",
-    buttons: ["Reiniciar agora"]
-  }).then(() => {
-    autoUpdater.quitAndInstall();
-  });
+  dialog
+    .showMessageBox({
+      type: "info",
+      title: "Atualização pronta",
+      message:
+        "Uma nova versão foi baixada. O app será reiniciado para instalar a atualização.",
+      buttons: ["Reiniciar agora"],
+    })
+    .then(() => {
+      autoUpdater.quitAndInstall();
+    });
 });
 
 app.whenReady().then(() => {
@@ -201,11 +210,13 @@ app.whenReady().then(() => {
   protocol.handle("app", async (request) => {
     try {
       const url = request.url.replace("app://", "");
-      
+
       const filePath = path.join(__dirname, url);
 
       console.log(`[Launcher] Protocol handler - URL requisitada: ${url}`);
-      console.log(`[Launcher] Protocol handler - Caminho resolvido: ${filePath}`);
+      console.log(
+        `[Launcher] Protocol handler - Caminho resolvido: ${filePath}`
+      );
 
       if (!fs.existsSync(filePath)) {
         console.error(`[Launcher] Arquivo não encontrado: ${filePath}`);
@@ -213,8 +224,8 @@ app.whenReady().then(() => {
       }
 
       const content = await fs.promises.readFile(filePath);
-      return new Response(content, { 
-        headers: { "content-type": getMime(filePath) } 
+      return new Response(content, {
+        headers: { "content-type": getMime(filePath) },
       });
     } catch (err) {
       console.error("[Launcher] Erro ao carregar recurso:", err);
@@ -235,7 +246,10 @@ app.whenReady().then(() => {
     antiCheatCore?.reportViolation(data);
   });
 
-  ipcMain.handle("get-anticheat-violations", () => antiCheatCore?.getViolations() ?? []);
+  ipcMain.handle(
+    "get-anticheat-violations",
+    () => antiCheatCore?.getViolations() ?? []
+  );
 
   ipcMain.on("clear-anticheat-violations", () => {
     antiCheatCore?.clearViolations();
