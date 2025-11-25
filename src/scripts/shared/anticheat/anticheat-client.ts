@@ -242,7 +242,6 @@
     document.body.style.pointerEvents = 'none';
     document.body.style.userSelect = 'none';
 
-    // Criar overlay de ban
     const overlay = document.createElement('div');
     overlay.id = 'anticheat-ban-overlay';
     overlay.style.cssText = `
@@ -300,7 +299,6 @@
     document.addEventListener('keypress', (e) => e.preventDefault(), true);
   };
 
-  // Inicializar todos os sistemas
   const initialize = () => {
     console.log('[AntiCheat] Initializing protection systems...');
 

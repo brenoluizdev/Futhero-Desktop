@@ -69,7 +69,7 @@ function createWindow() {
       sandbox: false,
       nodeIntegration: false,
       webSecurity: false,
-      devTools: true,
+      devTools: false,
     },
   });
 

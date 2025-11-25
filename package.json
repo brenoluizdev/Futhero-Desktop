@@ -3,57 +3,53 @@
   "version": "1.0.0",
   "description": "A secure bonk.io and haxball launcher with frontend manipulation capabilities.",
   "main": "dist/main.js",
+
   "scripts": {
     "dev": "npm run build && electron .",
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.scripts.json && npm run copy-assets && npm run copy-scripts-static",
+    "build:win": "npm run build && electron-builder --win",
+    "build:linux": "npm run build && electron-builder --linux",
+    "build:mac": "npm run build && electron-builder --mac",
     "copy-assets": "xcopy assets dist\\assets /E /I /Y",
     "copy-scripts-static": "node scripts/copy-static.js",
     "start": "electron .",
     "generate-icons": "node scripts/generate-icons.js",
     "generate-store": "npm run build && npm run generate-icons && electron-builder --win appx --x64"
   },
+
   "author": "brenoluizdev",
   "license": "ISC",
+
   "build": {
     "appId": "com.brenoluizdev.futhero",
     "productName": "Futhero",
     "copyright": "Copyright © 2025 Breno Luiz",
+
     "directories": {
       "output": "release",
       "buildResources": "build"
     },
+
     "files": [
       "dist/**/*",
       "assets/**/*",
+      "scripts/**/*",
+      "!node_modules/.cache/**/*",
       "node_modules/**/*",
       "package.json"
     ],
+
     "win": {
       "target": [
         {
           "target": "appx",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         }
       ],
       "icon": "build/icon.ico"
-    },
-    "appx": {
-      "identityName": "brenoluizdev.Futhero",
-      "publisher": "CN=32257FCD-A3F3-4041-841E-D735BDA06622",
-      "publisherDisplayName": "brenoluizdev",
-      "applicationId": "Futhero",
-      "displayName": "Futhero",
-      "backgroundColor": "#202020",
-      "showNameOnTiles": true,
-      "addAutoLaunchExtension": false,
-      "languages": [
-        "pt-BR",
-        "en-US"
-      ]
     }
   },
+
   "devDependencies": {
     "@types/electron": "latest",
     "@types/node": "^20.12.12",
@@ -62,6 +58,7 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
+
   "dependencies": {
     "dotenv": "^17.2.3"
   }

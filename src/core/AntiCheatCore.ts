@@ -73,8 +73,6 @@ export class AntiCheatCore {
 
   private protectMemory(): void {
     console.log('[AntiCheat] Memory protection initialized');
-    // A proteção de memória será feita principalmente no client-side
-    // Aqui podemos adicionar validações do lado do Electron se necessário
   }
 
   private startSpeedHackDetection(): void {
@@ -117,23 +115,18 @@ export class AntiCheatCore {
   }
 
   private checkIntegrity(): void {
-    // Verificações de integridade do lado do servidor/Electron
-    // As verificações de script injection são feitas no client-side
     console.log('[AntiCheat] Running integrity checks...');
   }
 
   private checkScriptIntegrity(): void {
-    // Esta função será executada no client-side
     console.log('[AntiCheat] Script integrity check (client-side only)');
   }
 
   private checkWebSocketManipulation(): void {
-    // Esta função será executada no client-side
     console.log('[AntiCheat] WebSocket manipulation check (client-side only)');
   }
 
   private checkConsoleManipulation(): void {
-    // Esta função será executada no client-side
     console.log('[AntiCheat] Console manipulation check (client-side only)');
   }
 
@@ -166,9 +159,6 @@ export class AntiCheatCore {
 
   private triggerBan(): void {
     console.error('[AntiCheat] Maximum violations reached. Triggering protective measures.');
-    
-    // No processo principal do Electron, registrar o ban
-    // A interface visual será tratada no client-side
     console.error('[AntiCheat] USER BANNED - Too many violations');
     
     // Limpar intervalos
@@ -181,14 +171,12 @@ export class AntiCheatCore {
   }
 
   private sendViolationToServer(report: ViolationReport): void {
-    // Implementar envio para servidor se necessário
     console.log('[AntiCheat] Would report to server:', report);
     
-    // Exemplo de como você poderia enviar para um servidor:
     // const https = require('https');
     // const data = JSON.stringify(report);
     // const options = {
-    //   hostname: 'seu-servidor.com',
+    //   hostname: 'futhero.com.br',
     //   port: 443,
     //   path: '/api/violations',
     //   method: 'POST',
@@ -200,8 +188,6 @@ export class AntiCheatCore {
   }
 
   private detectGameType(): string {
-    // Esta função precisa ser adaptada para funcionar no processo principal
-    // Por enquanto, retornar 'unknown' - o tipo real será detectado no client-side
     return 'unknown';
   }
 
