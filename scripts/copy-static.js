@@ -7,7 +7,10 @@ const rendererDest = path.join(__dirname, "../dist/renderer");
 const assetsSrc = path.join(__dirname, "../src/assets");
 const assetsDest = path.join(__dirname, "../dist/assets");
 
-const allowed = [".html", ".css", ".png", ".jpg", ".jpeg", ".svg"];
+const scriptsSrc = path.join(__dirname, "../src/scripts");
+const scriptsDest = path.join(__dirname, "../dist/scripts");
+
+const allowed = [".html", ".css", ".png", ".jpg", ".jpeg", ".svg", ".js"];
 
 function copyFolder(src, dest) {
     if (!fs.existsSync(dest)) {
@@ -30,5 +33,6 @@ function copyFolder(src, dest) {
 
 copyFolder(rendererSrc, rendererDest);
 copyFolder(assetsSrc, assetsDest);
+copyFolder(scriptsSrc, scriptsDest);
 
 console.log("Static files copied!");

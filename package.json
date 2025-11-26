@@ -1,6 +1,7 @@
 {
-  "name": "bonk-haxball-launcher",
-  "version": "1.0.0",
+  "name": "futhero_launcher",
+  "version": "1.0.13",
+  "description": "A secure bonk.io and haxball launcher with frontend manipulation capabilities.",
   "main": "dist/main/main.js",
   "scripts": {
     "dev": "npm run build && electron .",
@@ -16,13 +17,14 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "electron-is-dev": "^3.0.1",
     "fs": "^0.0.1-security",
     "path": "^0.12.7"
   },
   "build": {
     "appId": "com.brenoluizdev.futhero",
     "productName": "Futhero",
-    "directories": { 
+    "directories": {
       "buildResources": "build"
     },
     "win": {
