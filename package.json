@@ -1,66 +1,77 @@
 {
-  "name": "futhero-launcher",
-  "version": "1.0.13",
-  "description": "A secure bonk.io and haxball launcher with frontend manipulation capabilities.",
-  "main": "dist/main.js",
+  "name": "game-launcher",
+  "version": "1.0.0",
+  "description": "Launcher desktop empresarial para Bonk.io e Haxball",
+  "main": "dist/main/main.js",
+  "author": "Game Launcher Team",
+  "license": "MIT",
   "scripts": {
-    "dev": "npm run build && electron .",
-    "build": "tsc -p tsconfig.json && tsc -p tsconfig.scripts.json && npm run copy-assets && npm run copy-scripts-static",
-    "build:win": "npm run build && electron-builder --win",
-    "build:linux": "npm run build && electron-builder --linux",
-    "build:mac": "npm run build && electron-builder --mac",
-    "copy-assets": "xcopy assets dist\\assets /E /I /Y",
-    "copy-scripts-static": "node scripts/copy-static.js",
-    "start": "electron .",
-    "generate-icons": "node scripts/generate-icons.js"
+    "dev": "npm run clean:dist && npm run copy:assets && concurrently -k -s first \"pnpm run watch:ts\" \"pnpm run watch:assets\" \"pnpm run start:electron\"",
+    "watch:ts": "tsc -w",
+    "watch:assets": "cpx \"src/**/*.{html,css}\" dist -w",
+    "copy:assets": "cpx \"src/**/*.{html,css}\" dist",
+    "start:electron": "wait-on dist/main/main.js dist/renderer/index.html --delay 1000 && electron .",
+    "build": "npm run copy:assets && tsc && electron-builder",
+    "build:win": "npm run copy:assets && tsc && electron-builder --win",
+    "build:mac": "npm run copy:assets && tsc && electron-builder --mac",
+    "build:linux": "npm run copy:assets && tsc && electron-builder --linux",
+    "postinstall": "electron-builder install-app-deps",
+    "clean": "rm -rf dist build",
+    "clean:dist": "rm -rf dist"
   },
-  "author": "brenoluizdev",
-  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "concurrently": "^8.2.2",
+    "cpx": "^1.5.0",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "typescript": "^5.3.3",
+    "wait-on": "^7.2.0"
+  },
+  "dependencies": {
+    "electron-updater": "^6.1.7"
+  },
   "build": {
-    "appId": "com.brenoluizdev.futhero",
-    "productName": "Futhero",
+    "appId": "com.gamelauncher.app",
+    "productName": "Game Launcher",
     "directories": {
-      "output": "release",
-      "buildResources": "build"
+      "output": "build"
     },
     "files": [
       "dist/**/*",
-      "assets/**/*",
-      "!node_modules/.cache/**/*",
-      "node_modules/**/*",
       "package.json"
     ],
-    "extraResources": [
-      {
-        "from": "dist/scripts",
-        "to": "scripts"
-      }
-    ],
+    "publish": {
+      "provider": "github",
+      "owner": "seu-usuario",
+      "repo": "game-launcher"
+    },
     "win": {
       "target": [
         "nsis"
       ],
-      "icon": "build/icon.ico"
+      "icon": "assets/icon.ico"
     },
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "brenoluizdev",
-        "repo": "Futhero-Desktop"
-      }
-    ]
-  },
-  "devDependencies": {
-    "@types/electron": "latest",
-    "@types/node": "^20.12.12",
-    "electron": "^39.1.1",
-    "electron-builder": "^26.0.12",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
-  },
-  "dependencies": {
-    "dotenv": "^17.2.3",
-    "electron-is-dev": "^3.0.1",
-    "electron-updater": "^6.6.2"
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.games"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "assets/icon.png",
+      "category": "Game"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
   }
 }

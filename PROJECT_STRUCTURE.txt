@@ -1,0 +1,31 @@
+.
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── DEPLOYMENT.md
+├── LICENSE
+├── PROJECT_STRUCTURE.txt
+├── README.md
+├── TROUBLESHOOTING.md
+├── assets
+│   └── icon.svg
+├── electron-builder.yml
+├── package.json
+├── scripts
+│   └── generate-icons.sh
+├── src
+│   ├── injector
+│   ├── main
+│   │   ├── config-manager.ts
+│   │   ├── game-manager.ts
+│   │   └── main.ts
+│   ├── preload
+│   │   ├── injector-preload.ts
+│   │   └── preload.ts
+│   ├── renderer
+│   │   ├── index.html
+│   │   ├── renderer.ts
+│   │   └── styles.css
+│   └── types.ts
+└── tsconfig.json
+
+7 directories, 21 files

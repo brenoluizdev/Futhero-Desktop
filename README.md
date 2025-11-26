@@ -1,165 +1,172 @@
-# ⚡ Futhero – Bonk.io & Haxball Secure Launcher
+_# Game Launcher Empresarial
 
-### A Safe, Fast, and Enhanced Desktop Experience for **Bonk.io** and **Haxball**
+![Game Launcher](assets/icon.png)
 
----
-
-## 🧩 Overview
-
-**Futhero Secure Launcher** is a modern desktop application built with **Electron**, **TypeScript**, and **Node.js**, designed to provide a **secure and optimized environment** for the web games [**Bonk.io**](https://bonk.io) and [**Haxball.com**](https://haxball.com).  
-
-It acts as a **dedicated launcher** that improves performance, reduces ping, and allows safe **frontend customization**—similar to a browser extension—while maintaining strict security and isolation standards.
-
-This launcher is also **Microsoft Store ready**, with packaging handled via **AppX** format using `electron-builder`.
+**Launcher desktop de nível empresarial para os jogos online Bonk.io e Haxball, desenvolvido com Electron, TypeScript e ferramentas modernas.**
 
 ---
 
-## ✨ Features
+## Visão Geral
 
-✅ **Dual Game Support** – Seamlessly launch and play **Bonk.io** or **Haxball.com** from a single application.  
-🔒 **Secure Architecture** – Implements Electron’s best practices, including **Context Isolation**, **Sandboxing**, and **disabled Node Integration** for web content.  
-🧠 **Frontend Modding** – Safely injects custom JavaScript (`frontend-mod.js`) into the game’s context for UI enhancements or automation.  
-⚡ **Reduced Ping & Improved Stability** – Runs independently from traditional browsers, providing a smoother and faster connection.  
-🛠️ **TypeScript-Powered** – Ensures cleaner, type-safe, and scalable development.  
-🏬 **Microsoft Store Ready** – Fully configured for **AppX** packaging and distribution via the Microsoft Store.  
+O **Game Launcher** é uma aplicação desktop multiplataforma (Windows, macOS e Linux) que oferece uma experiência centralizada e aprimorada para jogar Bonk.io e Haxball. O projeto foi construído com foco em **performance, segurança e escalabilidade**, utilizando uma arquitetura moderna e robusta.
 
----
+### Funcionalidades Principais
 
-## ⚙️ Prerequisites
+- **Interface Moderna**: UI leve e responsiva com uma paleta de cores laranja, seguindo a identidade visual do projeto.
+- **Jogos Integrados**: Abre os jogos dentro de um `BrowserView` para uma experiência nativa e controlada.
+- **Injeção DOM Segura**: Injeta um menu customizado nos jogos de forma segura, usando `preload` scripts e `contextIsolation`.
+- **Modal Interno**: Um modal completo, acessível de dentro do jogo, com menus para configurações, troca de jogo, apoio e mais.
+- **Auto-Update Silencioso**: Utiliza `electron-updater` para buscar e instalar atualizações automaticamente a partir de releases do GitHub.
+- **Build Otimizado**: Configuração completa com `electron-builder` para gerar instaladores para Windows, macOS e Linux.
+- **Código 100% TypeScript**: Todo o projeto é escrito em TypeScript, garantindo tipagem forte e manutenibilidade.
 
-Before starting, make sure you have:
+## Arquitetura do Projeto
 
-- **Node.js (LTS version recommended)**  
-- **npm** (included with Node.js)
+O projeto é dividido em quatro diretórios principais dentro de `src/`, seguindo as melhores práticas de desenvolvimento com Electron:
 
----
+```
+/game-launcher
+├── src
+│   ├── main/         # Processo principal (Node.js)
+│   ├── preload/      # Scripts de preload (ponte entre main e renderer/injector)
+│   ├── renderer/     # UI do Launcher (HTML, CSS, TS)
+│   └── injector/     # Lógica e UI injetada nos jogos (TS, CSS)
+├── assets/           # Ícones e outros recursos visuais
+├── scripts/          # Scripts de utilidade (ex: geração de ícones)
+├── package.json      # Dependências e scripts
+├── tsconfig.json     # Configuração do TypeScript
+└── electron-builder.yml # Configuração do electron-builder
+```
 
-## 📦 Installation
+### Módulos
 
-1. **Clone the repository (or navigate to your project folder):**
-   ```bash
-   git clone https://github.com/brenoluizdev/Futhero-Desktop.git
-   cd futhero-desktop
-   ```
+1.  **`main`**: Gerencia o ciclo de vida da aplicação, janelas (`BrowserWindow`), `BrowserView`, comunicação IPC, segurança e o sistema de auto-update.
+2.  **`preload`**: Expõe APIs seguras do processo principal para os processos de renderização. Temos dois preloads:
+    *   `preload.ts`: Para a janela principal do launcher.
+    *   `injector-preload.ts`: Para o `BrowserView` onde o jogo é carregado, responsável por injetar a UI customizada.
+3.  **`renderer`**: Responsável pela interface do launcher (a tela inicial de seleção de jogos). É uma página web padrão.
+4.  **`injector`**: Contém o código (TypeScript e CSS) que é injetado na página do jogo. Este código cria o botão flutuante e o modal interno, comunicando-se com o processo `main` através do `injector-preload`.
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+## Como Começar
 
----
+### Pré-requisitos
 
-## ▶️ Running the Application
+- [Node.js](https://nodejs.org/) (v18 ou superior)
+- [pnpm](https://pnpm.io/) (ou npm/yarn)
+- [Git](https://git-scm.com/)
 
-### Development Mode
-Run the app directly from the TypeScript source:
+### Instalação
+
+1.  Clone o repositório:
+    ```bash
+    git clone https://github.com/seu-usuario/game-launcher.git
+    cd game-launcher
+    ```
+
+2.  Instale as dependências:
+    ```bash
+    pnpm install
+    ```
+
+3.  Gere os ícones da aplicação (requer ImageMagick):
+    ```bash
+    ./scripts/generate-icons.sh
+    ```
+
+### Rodando em Modo de Desenvolvimento
+
+Para iniciar o aplicativo em modo de desenvolvimento com hot-reload, execute:
+
 ```bash
-npm run dev
+pnpm dev
 ```
 
-### Production Build
-Compile and run the optimized version:
-```bash
-npm run build
-npm start
-```
+Este comando executa duas tarefas simultaneamente:
+- `tsc -w`: Observa e transpila os arquivos TypeScript para JavaScript em tempo real.
+- `wait-on dist/main/main.js && electron .`: Aguarda a compilação inicial do processo `main` e então inicia o Electron.
+
+## Build e Empacotamento
+
+O projeto utiliza `electron-builder` para criar instaladores otimizados para produção.
+
+### Comandos de Build
+
+- **Build para a plataforma atual**:
+  ```bash
+  pnpm build
+  ```
+
+- **Build para Windows**:
+  ```bash
+  pnpm build:win
+  ```
+
+- **Build para macOS**:
+  ```bash
+  pnpm build:mac
+  ```
+
+- **Build para Linux**:
+  ```bash
+  pnpm build:linux
+  ```
+
+Os arquivos de instalação serão gerados no diretório `build/`.
+
+## Sistema de Auto-Update
+
+O sistema de atualização automática é configurado para buscar novas versões a partir da seção **Releases** do repositório no GitHub.
+
+### Configuração
+
+1.  **`package.json`**: A chave `publish` define o provedor e o repositório.
+
+    ```json
+    "publish": {
+      "provider": "github",
+      "owner": "seu-usuario",
+      "repo": "game-launcher"
+    }
+    ```
+
+    **Importante**: Altere `seu-usuario` para o seu nome de usuário ou organização no GitHub.
+
+2.  **Token de Acesso do GitHub**: Para publicar releases, o `electron-builder` precisa de um token de acesso do GitHub. Crie um token com o escopo `repo` e defina-o como uma variável de ambiente:
+
+    ```bash
+    export GH_TOKEN="seu_token_aqui"
+    ```
+
+### Publicando uma Nova Versão
+
+1.  **Incremente a versão** no `package.json` (ex: de `1.0.0` para `1.0.1`).
+
+2.  **Faça o commit** das suas alterações:
+    ```bash
+    git add .
+    git commit -m "feat: Adiciona nova funcionalidade (v1.0.1)"
+    git tag v1.0.1
+    git push && git push --tags
+    ```
+
+3.  **Execute o build e publique**:
+    ```bash
+    pnpm build --publish always
+    ```
+
+O `electron-builder` irá compilar, criar os instaladores e fazer o upload deles para um novo rascunho de release no seu repositório GitHub. Basta editar e publicar o release para que os usuários comecem a receber a atualização automaticamente.
+
+## Segurança
+
+Seguimos as melhores práticas de segurança recomendadas pelo Electron:
+
+- **`contextIsolation`**: Habilitado por padrão para todos os processos de renderização.
+- **`nodeIntegration`**: Desabilitado.
+- **`sandbox`**: Habilitado.
+- **`webSecurity`**: Habilitado.
+- **`Content-Security-Policy`**: Definido no HTML do renderer para restringir o carregamento de recursos.
+- **Validação de Protocolos**: Links externos são abertos no navegador padrão do sistema (`shell.openExternal`) para maior segurança.
 
 ---
 
-## 🧠 Security Architecture
-
-The application is built around isolating untrusted web content (**Bonk.io** or **Haxball**) from the powerful Node.js environment.
-
-| Component | File | Role | Security Measures |
-| :--- | :--- | :--- | :--- |
-| **Main Process** | `src/main.ts` | Controls the app lifecycle and windows | Sandboxing and context isolation enabled |
-| **Preload Script** | `src/preload.ts` | Secure communication bridge between renderer and main | Prevents direct access to Node APIs |
-| **Frontend Mod** | `frontend-mod.js` | Custom UI scripts for Bonk.io/Haxball | Executed in the isolated web context |
-
----
-
-## 🎮 Frontend Modding
-
-The `frontend-mod.js` file is where you can add your custom scripts for either **Bonk.io** or **Haxball**.  
-These scripts run directly within the game’s DOM but communicate securely with the launcher through the `contextBridge` API.
-
-**Example:**
-```javascript
-if (window.futheroAPI) {
-  window.futheroAPI.sendNotification("Custom event triggered in Bonk.io!");
-}
-```
-
----
-
-## 🏬 Microsoft Store Publishing (AppX)
-
-The project is configured to build an **AppX** package using `electron-builder`.
-
-Before generating the final package, update your publisher details in `package.json`:
-
-```json
-"appx": {
-  "publisher": "CN=YourPublisherID",
-  "publisherDisplayName": "Your Publisher Name",
-  "applicationId": "YourAppIdentity"
-}
-```
-
-Then run:
-```bash
-npm run dist
-```
-
----
-
-## 🌐 Independent Mode (No Browser Required)
-
-Unlike traditional browser-based gameplay, **Futhero** runs the official **Bonk.io** and **Haxball.com** pages inside a secure Electron window.  
-This ensures:
-
-- Lower ping and faster load times  
-- A distraction-free gaming environment  
-- Continued support for original game analytics (views and metrics still count for the official sites)  
-- Enhanced security with no third-party browser extensions or ads  
-
----
-
-## 🧩 Folder Structure
-
-```
-Futhero-Launcher/
-├── src/
-│   ├── main.ts          # Main Electron process
-│   ├── preload.ts       # Secure preload communication
-│   ├── renderer/        # UI files (React or HTML)
-│   └── utils/           # Utility functions
-├── assets/              # Icons, logos, and static assets
-├── frontend-mod.js      # Game modification scripts
-├── package.json
-├── tsconfig.json
-└── README.md
-```
-
----
-
-## 💡 Technologies Used
-
-- [Electron](https://www.electronjs.org/) – Cross-platform desktop framework  
-- [TypeScript](https://www.typescriptlang.org/) – Type-safe JavaScript  
-- [Node.js](https://nodejs.org/) – Backend runtime  
-- [Electron Builder](https://www.electron.build/) – Packaging and distribution  
-
----
-
-## 🧑‍💻 Author
-
-Developed with ❤️ by **Breno (BonkTools Developer)**  
-> Aiming to make Bonk.io and Haxball faster, safer, and more enjoyable for everyone.
-
----
-
-## 📜 License
-
-This project is licensed under the **MIT License**.  
-Feel free to modify, fork, and contribute!
+*Este projeto foi gerado e desenvolvido pela IA Manus.*

@@ -1,62 +1,125 @@
-# Contributing to Bonk.io Secure Launcher
+# Guia de Contribuição
 
-We welcome contributions from the community to help improve the Bonk.io Secure Launcher. By participating in this project, you agree to abide by our code of conduct.
+Obrigado por considerar contribuir com o **Game Launcher**! Este documento fornece diretrizes para colaboradores.
 
-## How to Contribute
+## Como Contribuir
 
-### 1. Reporting Bugs
+### Reportar Bugs
 
-If you find a bug, please check the existing issues to see if it has already been reported. If not, open a new issue and include the following information:
+Se você encontrou um bug, por favor abra uma issue no GitHub com as seguintes informações:
 
-*   A clear and descriptive title.
-*   The steps to reproduce the bug.
-*   The expected behavior.
-*   The actual behavior.
-*   Your operating system and Electron version (if known).
+- **Descrição clara do problema**
+- **Passos para reproduzir**
+- **Comportamento esperado vs. comportamento atual**
+- **Sistema operacional e versão do launcher**
+- **Logs ou screenshots, se aplicável**
 
-### 2. Suggesting Enhancements
+### Sugerir Melhorias
 
-We are always looking for new features and improvements. Before submitting a feature request, please check the existing issues to avoid duplication. When suggesting an enhancement, clearly describe the proposed feature and why it would be valuable to the launcher.
+Para sugerir novas funcionalidades ou melhorias:
 
-### 3. Code Contributions
+1. Verifique se já não existe uma issue similar
+2. Abra uma nova issue com a tag `enhancement`
+3. Descreva claramente a funcionalidade e seus benefícios
 
-We follow a standard Git workflow for code contributions.
+### Enviar Pull Requests
 
-#### Prerequisites
+1. **Fork** o repositório
+2. **Clone** seu fork localmente
+3. **Crie uma branch** para sua feature:
+   ```bash
+   git checkout -b feature/minha-feature
+   ```
+4. **Faça suas alterações** seguindo os padrões do projeto
+5. **Teste** suas alterações localmente
+6. **Commit** suas mudanças com mensagens descritivas:
+   ```bash
+   git commit -m "feat: Adiciona funcionalidade X"
+   ```
+7. **Push** para seu fork:
+   ```bash
+   git push origin feature/minha-feature
+   ```
+8. **Abra um Pull Request** no repositório original
 
-*   Ensure you have completed the [Installation and Setup] in the `README.md`.
-*   Familiarize yourself with the project's **Security Architecture**, especially the separation between the main process, preload script, and frontend mod.
+## Padrões de Código
 
-#### Steps for Code Contribution
+### TypeScript
 
-1.  **Fork** the repository.
-2.  **Clone** your forked repository locally.
-3.  **Create a new branch** for your feature or fix:
-    \`\`\`bash
-    git checkout -b feature/your-feature-name
-    \`\`\`
-    or
-    \`\`\`bash
-    git checkout -b fix/issue-number
-    \`\`\`
-4.  **Make your changes.** Ensure that any changes to the core Electron files (`src/main.ts`, `src/preload.ts`) adhere to the **security best practices** of Electron (Context Isolation, Sandboxing).
-5.  **Test your changes** thoroughly using `npm run dev`.
-6.  **Commit your changes** with a clear and descriptive commit message.
-7.  **Push** your branch to your fork.
-8.  **Open a Pull Request (PR)** to the main repository.
+- Use tipagem forte sempre que possível
+- Evite `any` - prefira `unknown` quando necessário
+- Documente funções públicas com JSDoc
+- Siga as regras do `tsconfig.json`
 
-#### Code Style
+### Estilo de Código
 
-*   We use **TypeScript** for the main application logic.
-*   Please adhere to the existing code style and use clear, descriptive variable names.
-*   Ensure your code compiles without errors by running `npm run build`.
+- **Indentação**: 2 espaços
+- **Aspas**: Simples (`'`) para strings
+- **Ponto e vírgula**: Obrigatório
+- **Naming**:
+  - Classes: `PascalCase`
+  - Funções/variáveis: `camelCase`
+  - Constantes: `UPPER_SNAKE_CASE`
+  - Arquivos: `kebab-case.ts`
 
-## Security Policy
+### Commits
 
-Given that this application loads remote content, security is paramount. All contributions must be reviewed with a focus on maintaining the integrity of the **Context Isolation** and **Sandboxing** features.
+Seguimos o padrão [Conventional Commits](https://www.conventionalcommits.org/):
 
-*   **NEVER** enable `nodeIntegration` for the web content.
-*   **NEVER** expose unnecessary APIs from the main process to the preload script or the web content.
-*   All communication between the web content and the main process **MUST** go through the secure `contextBridge` API.
+- `feat:` Nova funcionalidade
+- `fix:` Correção de bug
+- `docs:` Alterações na documentação
+- `style:` Formatação, ponto e vírgula, etc.
+- `refactor:` Refatoração de código
+- `test:` Adição ou modificação de testes
+- `chore:` Tarefas de manutenção
 
-Thank you for helping to make this launcher better and more secure!
+## Estrutura do Projeto
+
+Antes de contribuir, familiarize-se com a estrutura:
+
+```
+src/
+├── main/       # Processo principal do Electron
+├── preload/    # Scripts de preload (ponte segura)
+├── renderer/   # Interface do launcher
+└── injector/   # UI injetada nos jogos
+```
+
+## Testando Localmente
+
+Antes de enviar um PR, certifique-se de que:
+
+1. O código compila sem erros:
+   ```bash
+   pnpm build
+   ```
+
+2. O aplicativo funciona em modo dev:
+   ```bash
+   pnpm dev
+   ```
+
+3. Os builds são gerados corretamente:
+   ```bash
+   pnpm build:win  # ou build:mac, build:linux
+   ```
+
+## Código de Conduta
+
+- Seja respeitoso e profissional
+- Aceite feedback construtivo
+- Foque no que é melhor para o projeto
+- Ajude outros contribuidores quando possível
+
+## Dúvidas?
+
+Se tiver dúvidas sobre como contribuir, sinta-se à vontade para:
+
+- Abrir uma issue com a tag `question`
+- Entrar em contato através do Discord do projeto
+- Consultar a documentação no README.md
+
+---
+
+**Obrigado por contribuir com a Futhero!** 🎮
