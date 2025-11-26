@@ -46,12 +46,15 @@ function createWindow() {
         autoHideMenuBar: true,
         icon: path.join(__dirname, "../assets/icon.ico"),
         webPreferences: {
-            preload: path.join(__dirname, "../preload/preload.js"),
+            contextIsolation: true,
             nodeIntegration: false,
-            contextIsolation: false,
+            preload: path.join(__dirname, "../preload/preload.js"),
             webSecurity: false,
             allowRunningInsecureContent: true,
             devTools: isDev,
+            // Performance otimizations
+            backgroundThrottling: false, // Não reduz FPS quando em background
+            offscreen: false,
         },
     });
     mainWindow.on("page-title-updated", (event) => event.preventDefault());
@@ -60,6 +63,38 @@ function createWindow() {
     mainWindow.webContents.on("did-navigate", async (_event, url) => {
         injectScriptsForURL(url);
     });
+    // As configurações serão aplicadas quando o usuário clicar em "Aplicar"
+}
+// Função para aplicar configurações de performance ao Electron
+function applyPerformanceToWindow(settings) {
+    if (!mainWindow)
+        return;
+    console.log("[Performance] Aplicando configurações:", settings);
+    // Unlock FPS - desabilitar limitador de FPS do Chromium
+    if (settings.unlockFPS) {
+        mainWindow.webContents.setFrameRate(0); // 0 = sem limite
+        console.log("[Performance] ✓ FPS desbloqueado");
+    }
+    else {
+        mainWindow.webContents.setFrameRate(60);
+    }
+    // Disable Animations
+    if (settings.disableAnimations) {
+        mainWindow.webContents.executeJavaScript(`
+      const style = document.createElement('style');
+      style.id = 'fh-disable-animations';
+      style.textContent = \`
+        *, *::before, *::after {
+          animation-duration: 0s !important;
+          animation-delay: 0s !important;
+          transition-duration: 0s !important;
+          transition-delay: 0s !important;
+        }
+      \`;
+      document.head.appendChild(style);
+    `);
+        console.log("[Performance] ✓ Animações desativadas");
+    }
 }
 function injectScriptsForURL(url) {
     if (!mainWindow)
@@ -73,21 +108,98 @@ function injectScriptsForURL(url) {
         return;
     const sharedDir = path.join(__dirname, "../scripts/shared");
     const gameDir = path.join(__dirname, `../scripts/${folder}`);
-    const injectFolder = (dir) => {
-        if (!fs.existsSync(dir))
+    const cssDir = path.join(__dirname, "../css");
+    // Função para injetar CSS
+    const injectCSS = (cssPath) => {
+        if (!fs.existsSync(cssPath)) {
+            console.warn("⚠ CSS não encontrado:", cssPath);
             return;
-        const scripts = fs.readdirSync(dir).filter(f => f.endsWith(".js"));
-        scripts.forEach(script => {
-            const scriptPath = path.join(dir, script);
+        }
+        const cssContent = fs.readFileSync(cssPath, "utf8");
+        mainWindow.webContents
+            .executeJavaScript(`
+        (function() {
+          const style = document.createElement('style');
+          style.textContent = \`${cssContent.replace(/`/g, '\\`')}\`;
+          document.head.appendChild(style);
+          console.log('[CSS] Injetado: ${path.basename(cssPath)}');
+        })();
+      `)
+            .catch((err) => console.error("✗ Erro ao injetar CSS:", path.basename(cssPath), err));
+    };
+    // Função para buscar todos os arquivos recursivamente
+    const getAllFiles = (dirPath, extension, arrayOfFiles = []) => {
+        if (!fs.existsSync(dirPath))
+            return arrayOfFiles;
+        const files = fs.readdirSync(dirPath);
+        files.forEach((file) => {
+            const filePath = path.join(dirPath, file);
+            if (fs.statSync(filePath).isDirectory()) {
+                arrayOfFiles = getAllFiles(filePath, extension, arrayOfFiles);
+            }
+            else if (file.endsWith(extension)) {
+                arrayOfFiles.push(filePath);
+            }
+        });
+        return arrayOfFiles;
+    };
+    // Função para injetar JavaScript
+    const injectFolder = (dir) => {
+        const scripts = getAllFiles(dir, ".js");
+        scripts.forEach((scriptPath) => {
             const code = fs.readFileSync(scriptPath, "utf8");
-            mainWindow.webContents.executeJavaScript(code)
-                .catch(err => console.error("Erro ao injetar script:", script, err));
+            mainWindow.webContents
+                .executeJavaScript(code)
+                .then(() => console.log("✓ Script injetado:", path.basename(scriptPath)))
+                .catch((err) => console.error("✗ Erro ao injetar:", path.basename(scriptPath), err));
         });
     };
-    injectFolder(sharedDir);
-    injectFolder(gameDir);
-    console.log("Scripts injetados para:", folder);
+    // Aguardar o DOM estar pronto antes de injetar
+    mainWindow.webContents.executeJavaScript(`
+    new Promise((resolve) => {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', resolve);
+      } else {
+        resolve();
+      }
+    });
+  `).then(() => {
+        // 1. Injetar todos os CSS primeiro
+        const cssFiles = getAllFiles(cssDir, ".css");
+        cssFiles.forEach(injectCSS);
+        // 2. Depois injetar os scripts
+        injectFolder(sharedDir);
+        injectFolder(gameDir);
+        console.log("✅ Injeção completa para:", folder);
+    });
 }
+// IPC Handler para recarregar com novas configurações
+electron_1.ipcMain.handle("apply-performance-settings", async (_event, settings) => {
+    if (!mainWindow)
+        return { success: false, error: "Window not found" };
+    try {
+        console.log("[IPC] Recebendo configurações de performance:", settings);
+        // Aplicar configurações que não requerem restart
+        applyPerformanceToWindow(settings);
+        // Recarregar a página para aplicar mudanças
+        mainWindow.reload();
+        return { success: true };
+    }
+    catch (error) {
+        console.error("[IPC] Erro ao aplicar configurações:", error);
+        return { success: false, error: String(error) };
+    }
+});
+// Aplicar flags do Chromium na inicialização do app (antes de criar janelas)
+electron_1.app.on("ready", () => {
+    // Flags que devem ser aplicadas no startup
+    electron_1.app.commandLine.appendSwitch("disable-frame-rate-limit");
+    electron_1.app.commandLine.appendSwitch("disable-gpu-vsync");
+    electron_1.app.commandLine.appendSwitch("enable-gpu-rasterization");
+    electron_1.app.commandLine.appendSwitch("enable-zero-copy");
+    electron_1.app.commandLine.appendSwitch("ignore-gpu-blocklist");
+    console.log("[Startup] Flags de performance aplicadas");
+});
 electron_1.app.whenReady().then(() => {
     createWindow();
 });

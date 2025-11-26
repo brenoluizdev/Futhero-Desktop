@@ -10,6 +10,9 @@ const assetsDest = path.join(__dirname, "../dist/assets");
 const scriptsSrc = path.join(__dirname, "../src/scripts");
 const scriptsDest = path.join(__dirname, "../dist/scripts");
 
+const cssSrc = path.join(__dirname, "../src/css");
+const cssDest = path.join(__dirname, "../dist/css");
+
 const allowed = [".html", ".css", ".png", ".jpg", ".jpeg", ".svg", ".js", ".ico"];
 
 function copyFolder(src, dest) {
@@ -34,5 +37,6 @@ function copyFolder(src, dest) {
 copyFolder(rendererSrc, rendererDest);
 copyFolder(assetsSrc, assetsDest);
 copyFolder(scriptsSrc, scriptsDest);
+copyFolder(cssSrc, cssDest);
 
 console.log("Static files copied!");
