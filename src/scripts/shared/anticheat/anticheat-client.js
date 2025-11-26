@@ -36,7 +36,9 @@
     'cloudflare.com',
     'jquery.com',
     'bootstrapcdn.com',
-    'ats.rlcdn.com'
+    'btloader.com',
+    'ats.rlcdn.com',
+    'lngtdv.com'
   ];
 
   const CONTEXT_SAFE_KEYWORDS = [

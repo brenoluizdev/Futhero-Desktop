@@ -1,10 +1,7 @@
 (() => {
   console.log("[Launcher] UI Menu injected.");
 
-  const style = document.createElement("link");
-  style.rel = "stylesheet";
-  style.href = "app://scripts/shared/ui/menu.css";
-  document.head.appendChild(style);
+// Removido: Injeção de CSS incorreta. O menu modal usa estilos inline.
 
   const menuButton = document.createElement("div");
   menuButton.id = "fh-menu-button";
@@ -198,8 +195,8 @@
 
       btn.addEventListener("click", () => {
         sidebar.querySelectorAll("div").forEach((el) => {
-          el.style.background = "transparent";
-          el.style.color = "#96989d";
+          (el as HTMLElement).style.background = "transparent";
+          (el as HTMLElement).style.color = "#96989d";
         });
 
         btn.style.background = "#404249";
@@ -509,9 +506,13 @@
       <div id="system-info" style="color: rgba(255,255,255,0.9); font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; line-height: 1.8;">
         <div>🖥️ Núcleos: ${navigator.hardwareConcurrency || "N/A"}</div>
         <div>💾 Memória: ${
-          navigator.deviceMemory ? navigator.deviceMemory + " GB" : "N/A"
+          (navigator as any).deviceMemory
+            ? (navigator as any).deviceMemory + " GB"
+            : "N/A"
         }</div>
-        <div>🌐 Conexão: ${navigator.connection?.effectiveType || "N/A"}</div>
+        <div>🌐 Conexão: ${
+          (navigator as any).connection?.effectiveType || "N/A"
+        }</div>
       </div>
     </div>
 
@@ -590,11 +591,19 @@
 
     setTimeout(() => {
       const applyBtn = page.querySelector("#apply-performance");
-      const toggleFPS = page.querySelector("#toggle-fps");
-      const toggleHardware = page.querySelector("#toggle-hardware");
-      const toggleLatency = page.querySelector("#toggle-latency");
-      const toggleAnimations = page.querySelector("#toggle-animations");
-      const togglePriority = page.querySelector("#toggle-priority");
+      const toggleFPS = page.querySelector("#toggle-fps") as HTMLInputElement;
+      const toggleHardware = page.querySelector(
+        "#toggle-hardware"
+      ) as HTMLInputElement;
+      const toggleLatency = page.querySelector(
+        "#toggle-latency"
+      ) as HTMLInputElement;
+      const toggleAnimations = page.querySelector(
+        "#toggle-animations"
+      ) as HTMLInputElement;
+      const togglePriority = page.querySelector(
+        "#toggle-priority"
+      ) as HTMLInputElement;
 
       const saveSettings = () => {
         localStorage.setItem("fh_unlock_fps", toggleFPS.checked.toString());
@@ -622,7 +631,7 @@
       toggleAnimations?.addEventListener("change", saveSettings);
 
       togglePriority?.addEventListener("change", (e) => {
-        if (e.target.checked) {
+        if ((e.target as HTMLInputElement).checked) {
           toggleFPS.checked = true;
           toggleHardware.checked = true;
           toggleLatency.checked = true;
@@ -631,22 +640,15 @@
         saveSettings();
       });
 
-      applyBtn?.addEventListener("click", async () => {
-        saveSettings();
-        
-        if (window.fh && window.fh.applyPerformanceSettings) {
-          console.log("[Performance] Aplicando configurações e reiniciando...");
-          await window.fh.applyPerformanceSettings();
-        } else {
-          location.reload();
-        }
+      applyBtn?.addEventListener("click", () => {
+        sendPerformanceSettingsToMain();
       });
     }, 0);
 
     return page;
   }
 
-  function applyPerformanceSettings() {
+  function applyRendererOptimizations() {
     const settings = {
       unlockFPS: localStorage.getItem("fh_unlock_fps") === "true",
       hardwareAccel: localStorage.getItem("fh_hardware_accel") === "true",
@@ -740,6 +742,28 @@
     }
   }
 
+  function sendPerformanceSettingsToMain() {
+    const settings = {
+      unlockFPS: localStorage.getItem("fh_unlock_fps") === "true",
+      hardwareAccel: localStorage.getItem("fh_hardware_accel") === "true",
+      lowLatency: localStorage.getItem("fh_low_latency") === "true",
+      disableAnimations:
+        localStorage.getItem("fh_disable_animations") === "true",
+      prioritizePerformance:
+        localStorage.getItem("fh_prioritize_perf") === "true",
+    };
+
+    // Envia as configurações para o processo principal via API exposta pelo preload
+    (window as any).fh.applyPerformanceSettings(settings).then((result: any) => {
+      if (result.success) {
+        console.log("[Menu] Configurações de performance enviadas ao main process. O aplicativo será recarregado.");
+      } else {
+        console.error("[Menu] Falha ao enviar configurações:", result.error);
+        alert("Erro ao aplicar configurações de performance: " + result.error);
+      }
+    });
+  }
+
   function createDiscordPage() {
     const page = document.createElement("div");
     page.innerHTML = `
@@ -804,7 +828,7 @@
 
     setTimeout(() => {
       const copyBtn = page.querySelector("#copy-discord");
-      const input = page.querySelector("#discord-link");
+      const input = page.querySelector("#discord-link") as HTMLInputElement;
 
       copyBtn?.addEventListener("click", () => {
         input.select();
@@ -812,12 +836,13 @@
 
         try {
           document.execCommand("copy");
-          copyBtn.textContent = "✓ Link Copiado!";
-          copyBtn.style.background = "rgba(34, 197, 94, 0.8)";
+          (copyBtn as HTMLElement).textContent = "✓ Link Copiado!";
+          (copyBtn as HTMLElement).style.background = "rgba(34, 197, 94, 0.8)";
 
           setTimeout(() => {
-            copyBtn.textContent = "📋 Copiar Link do Discord";
-            copyBtn.style.background = "rgba(255, 255, 255, 0.25)";
+            (copyBtn as HTMLElement).textContent = "📋 Copiar Link do Discord";
+            (copyBtn as HTMLElement).style.background =
+              "rgba(255, 255, 255, 0.25)";
           }, 2000);
         } catch (err) {
           console.error("Erro ao copiar:", err);
@@ -871,6 +896,6 @@
   });
 
   window.addEventListener("load", () => {
-    applyPerformanceSettings();
+    applyRendererOptimizations();
   });
 })();

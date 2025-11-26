@@ -1,5 +1,5 @@
 (() => {
-  console.log('[AntiCheat] Macro detector initializing...');
+  console.log("[AntiCheat] Macro detector initializing...");
 
   const CONFIG = {
     enabled: true,
@@ -19,14 +19,16 @@
 
   function analyzeIntervals(intervals) {
     if (intervals.length < CONFIG.analysisWindowSize) {
-      return { isSuspicious: false, reason: '', confidence: 0 };
+      return { isSuspicious: false, reason: "", confidence: 0 };
     }
 
     const variance = calculateVariance(intervals);
     if (variance < CONFIG.minHumanVariation) {
       return {
         isSuspicious: true,
-        reason: `Intervalos muito consistentes (variance: ${variance.toFixed(2)}ms)`,
+        reason: `Intervalos muito consistentes (variance: ${variance.toFixed(
+          2
+        )}ms)`,
         confidence: 0.9,
       };
     }
@@ -50,7 +52,9 @@
       };
     }
 
-    const tooFastCount = intervals.filter(i => i < CONFIG.minTimeBetweenInputs).length;
+    const tooFastCount = intervals.filter(
+      (i) => i < CONFIG.minTimeBetweenInputs
+    ).length;
     if (tooFastCount > intervals.length * 0.3) {
       return {
         isSuspicious: true,
@@ -62,17 +66,17 @@
     if (hasAlternatingPattern(intervals)) {
       return {
         isSuspicious: true,
-        reason: 'Padrão alternado detectado',
+        reason: "Padrão alternado detectado",
         confidence: 0.75,
       };
     }
 
-    return { isSuspicious: false, reason: '', confidence: 0 };
+    return { isSuspicious: false, reason: "", confidence: 0 };
   }
 
   function calculateVariance(intervals) {
     const mean = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-    const squaredDiffs = intervals.map(x => Math.pow(x - mean, 2));
+    const squaredDiffs = intervals.map((x) => Math.pow(x - mean, 2));
     const variance = squaredDiffs.reduce((a, b) => a + b, 0) / intervals.length;
     return Math.sqrt(variance);
   }
@@ -116,8 +120,12 @@
     const variance = calculateVariance(last10);
 
     console.log(`[MacroDetector] Key: ${key}`);
-    console.log(`  Últimos intervalos: [${last10.map(i => i.toFixed(1)).join(', ')}]ms`);
-    console.log(`  Média: ${avg.toFixed(2)}ms | Desvio: ${variance.toFixed(2)}ms`);
+    console.log(
+      `  Últimos intervalos: [${last10.map((i) => i.toFixed(1)).join(", ")}]ms`
+    );
+    console.log(
+      `  Média: ${avg.toFixed(2)}ms | Desvio: ${variance.toFixed(2)}ms`
+    );
   }
 
   function reportViolation(key, reason, confidence) {
@@ -133,10 +141,8 @@
       `\n  Violações desta tecla: ${currentViolations}`
     );
 
-    if ((window).futheroLauncherAPI) {
-      (window).futheroLauncherAPI.log(
-        `MACRO DETECTED - Key: ${key} - ${reason}`
-      );
+    if (window.futheroLauncherAPI) {
+      window.futheroLauncherAPI.log(`MACRO DETECTED - Key: ${key} - ${reason}`);
     }
 
     if (totalViolations >= CONFIG.maxViolationsBeforeBan) {
@@ -145,11 +151,11 @@
   }
 
   function triggerBan(key, reason) {
-    console.error('[MacroDetector] 🔴 BAN TRIGGERED');
+    console.error("[MacroDetector] 🔴 BAN TRIGGERED");
 
-    document.body.style.pointerEvents = 'none';
+    document.body.style.pointerEvents = "none";
 
-    const overlay = document.createElement('div');
+    const overlay = document.createElement("div");
     overlay.style.cssText = `
       position: fixed;
       top: 0;
@@ -170,8 +176,8 @@
     const history = inputHistory.get(key) || [];
     const recentIntervals = history
       .slice(-10)
-      .map(h => h.timeSinceLast.toFixed(1))
-      .join(', ');
+      .map((h) => h.timeSinceLast.toFixed(1))
+      .join(", ");
 
     overlay.innerHTML = `
       <div style="max-width: 700px; padding: 40px; background: rgba(0,0,0,0.3); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
@@ -204,7 +210,7 @@
       </div>
     `;
 
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       @keyframes fadeIn {
         from { opacity: 0; transform: scale(0.9); }
@@ -215,84 +221,97 @@
     document.body.appendChild(overlay);
 
     const blockInput = (e) => e.preventDefault();
-    document.addEventListener('keydown', blockInput, true);
-    document.addEventListener('keyup', blockInput, true);
-    document.addEventListener('keypress', blockInput, true);
-    document.addEventListener('mousedown', blockInput, true);
-    document.addEventListener('mouseup', blockInput, true);
+    document.addEventListener("keydown", blockInput, true);
+    document.addEventListener("keyup", blockInput, true);
+    document.addEventListener("keypress", blockInput, true);
+    document.addEventListener("mousedown", blockInput, true);
+    document.addEventListener("mouseup", blockInput, true);
   }
 
-  document.addEventListener('keydown', (e) => {
-    if (!CONFIG.enabled) return;
+  document.addEventListener(
+    "keydown",
+    (e) => {
+      if (!CONFIG.enabled) return;
 
-    const key = e.key.toLowerCase();
-    const timestamp = performance.now();
+      const key = e.key.toLowerCase();
+      const timestamp = performance.now();
 
-    if (!inputHistory.has(key)) {
-      inputHistory.set(key, []);
-    }
-
-    let history = inputHistory.get(key);
-    if (!history) {
-      history = [];
-      inputHistory.set(key, history);
-    }
-
-    const timeSinceLast = history.length > 0
-      ? timestamp - history[history.length - 1].timestamp
-      : 0;
-
-    history.push({ timestamp, timeSinceLast });
-
-    if (history.length > CONFIG.analysisWindowSize * 2) {
-      history.shift();
-    }
-
-    if (history.length >= CONFIG.analysisWindowSize) {
-      const intervals = history
-        .slice(-CONFIG.analysisWindowSize)
-        .map(h => h.timeSinceLast)
-        .filter(t => t > 0);
-
-      const analysis = analyzeIntervals(intervals);
-
-      if (analysis.isSuspicious && analysis.confidence > 0.7) {
-        visualizeInputPattern(key, intervals);
-        reportViolation(key, analysis.reason, analysis.confidence);
-  let mouseClickHistory = [];
-  document.addEventListener('mousedown', (e) => {
-    if (!CONFIG.enabled) return;
-
-    const timestamp = performance.now();
-    mouseClickHistory.push(timestamp);
-
-    if (mouseClickHistory.length > CONFIG.analysisWindowSize * 2) {
-      mouseClickHistory.shift();
-    }
-
-    if (mouseClickHistory.length >= CONFIG.analysisWindowSize) {
-      const intervals = mouseClickHistory
-        .slice(-CONFIG.analysisWindowSize)
-        .map((t, i, arr) => (i > 0 ? t - arr[i - 1] : 0))
-        .filter(t => t > 0);
-
-      const analysis = analyzeIntervals(intervals);
-
-      if (analysis.isSuspicious && analysis.confidence > 0.7) {
-        reportViolation('mouse', analysis.reason, analysis.confidence);
+      if (!inputHistory.has(key)) {
+        inputHistory.set(key, []);
       }
-    }
-  }, true);
+
+      let history = inputHistory.get(key);
+      if (!history) {
+        history = [];
+        inputHistory.set(key, history);
       }
-    }
-  }, true);
+
+      const timeSinceLast =
+        history.length > 0
+          ? timestamp - history[history.length - 1].timestamp
+          : 0;
+
+      history.push({ timestamp, timeSinceLast });
+
+      if (history.length > CONFIG.analysisWindowSize * 2) {
+        history.shift();
+      }
+
+      if (history.length >= CONFIG.analysisWindowSize) {
+        const intervals = history
+          .slice(-CONFIG.analysisWindowSize)
+          .map((h) => h.timeSinceLast)
+          .filter((t) => t > 0);
+
+        const analysis = analyzeIntervals(intervals);
+
+        if (analysis.isSuspicious && analysis.confidence > 0.7) {
+          visualizeInputPattern(key, intervals);
+          reportViolation(key, analysis.reason, analysis.confidence);
+          let mouseClickHistory = [];
+          document.addEventListener(
+            "mousedown",
+            (e) => {
+              if (!CONFIG.enabled) return;
+
+              const timestamp = performance.now();
+              mouseClickHistory.push(timestamp);
+
+              if (mouseClickHistory.length > CONFIG.analysisWindowSize * 2) {
+                mouseClickHistory.shift();
+              }
+
+              if (mouseClickHistory.length >= CONFIG.analysisWindowSize) {
+                const intervals = mouseClickHistory
+                  .slice(-CONFIG.analysisWindowSize)
+                  .map((t, i, arr) => (i > 0 ? t - arr[i - 1] : 0))
+                  .filter((t) => t > 0);
+
+                const analysis = analyzeIntervals(intervals);
+
+                if (analysis.isSuspicious && analysis.confidence > 0.7) {
+                  reportViolation(
+                    "mouse",
+                    analysis.reason,
+                    analysis.confidence
+                  );
+                }
+              }
+            },
+            true
+          );
+        }
+      }
+    },
+    true
+  );
 
   setInterval(() => {
     const now = performance.now();
     const maxAge = 30000;
 
     inputHistory.forEach((history, key) => {
-      const filtered = history.filter(h => now - h.timestamp < maxAge);
+      const filtered = history.filter((h) => now - h.timestamp < maxAge);
       if (filtered.length > 0) {
         inputHistory.set(key, filtered);
       } else {
@@ -300,11 +319,11 @@
       }
     });
 
-    mouseClickHistory = mouseClickHistory.filter(t => now - t < maxAge);
+    mouseClickHistory = mouseClickHistory.filter((t) => now - t < maxAge);
   }, 10000);
 
-  console.log('[MacroDetector] ✓ Active and monitoring');
-  console.log('[MacroDetector] Thresholds:', {
+  console.log("[MacroDetector] ✓ Active and monitoring");
+  console.log("[MacroDetector] Thresholds:", {
     maxInputsPerSecond: CONFIG.maxInputsPerSecond,
     minHumanVariation: CONFIG.minHumanVariation,
     maxConsecutiveSameInterval: CONFIG.maxConsecutiveSameInterval,

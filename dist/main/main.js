@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const electron_1 = require("electron");
 const path = __importStar(require("path"));
 const fs = __importStar(require("fs"));
+const electron_2 = require("electron");
 const isDev = !electron_1.app.isPackaged;
 let mainWindow = null;
 function createWindow() {
@@ -172,6 +173,31 @@ function injectScriptsForURL(url) {
         injectFolder(gameDir);
         console.log("✅ Injeção completa para:", folder);
     });
+    mainWindow.webContents.on("did-finish-load", () => {
+        const win = mainWindow;
+        if (!win)
+            return;
+        const currentUrl = win.webContents.getURL();
+        console.log(`[Launcher] Página carregada: ${currentUrl}`);
+        const scripts = getUiScripts();
+        if (scripts.length === 0) {
+            console.log("[Launcher] Nenhum script encontrado!");
+            return;
+        }
+        console.log(`[Launcher] Injetando ${scripts.length} scripts...`);
+        for (const scriptPath of scripts) {
+            try {
+                const scriptCode = fs.readFileSync(scriptPath, "utf8");
+                win.webContents.executeJavaScript(scriptCode);
+                const relative = path.relative(path.join(__dirname, "ui"), scriptPath);
+                console.log(`[Launcher] [OK] ${relative}`);
+            }
+            catch (error) {
+                console.error(`[Launcher] ERRO ao injetar ${path.basename(scriptPath)}`, error);
+            }
+        }
+        console.log("[Launcher] Injeção de scripts concluída.");
+    });
 }
 // IPC Handler para recarregar com novas configurações
 electron_1.ipcMain.handle("apply-performance-settings", async (_event, settings) => {
@@ -200,8 +226,87 @@ electron_1.app.on("ready", () => {
     electron_1.app.commandLine.appendSwitch("ignore-gpu-blocklist");
     console.log("[Startup] Flags de performance aplicadas");
 });
+function getMime(filePath) {
+    const ext = path.extname(filePath).toLowerCase();
+    const mimeTypes = {
+        ".css": "text/css",
+        ".js": "text/javascript",
+        ".json": "application/json",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".svg": "image/svg+xml",
+        ".html": "text/html",
+        ".ico": "image/x-icon",
+        ".woff": "font/woff",
+        ".woff2": "font/woff2",
+        ".ttf": "font/ttf",
+    };
+    return mimeTypes[ext] || "application/octet-stream";
+}
+function getUiScripts() {
+    const isDev = !electron_1.app.isPackaged;
+    const uiScripts = path.join(__dirname, "ui");
+    console.log(`[Launcher] isDev: ${isDev}`);
+    console.log(`[Launcher] __dirname: ${__dirname}`);
+    console.log(`[Launcher] uiScripts: ${uiScripts}`);
+    const allScripts = [];
+    const getScriptsRecursive = (dir) => {
+        if (!fs.existsSync(dir)) {
+            console.log(`[Launcher] Diretório não existe: ${dir}`);
+            return [];
+        }
+        return fs.readdirSync(dir).flatMap((file) => {
+            const full = path.join(dir, file);
+            const stat = fs.statSync(full);
+            if (stat.isDirectory())
+                return getScriptsRecursive(full);
+            return full.endsWith(".js") ? [full] : [];
+        });
+    };
+    if (fs.existsSync(uiScripts)) {
+        allScripts.push(...getScriptsRecursive(uiScripts));
+    }
+    console.log(`[Launcher] Total de scripts encontrados: ${allScripts.length}`);
+    return allScripts;
+}
 electron_1.app.whenReady().then(() => {
-    createWindow();
+    const mainWindow = createWindow();
+    electron_1.protocol.handle("app", async (request) => {
+        try {
+            const url = request.url.replace("app://", "");
+            const filePath = path.join(__dirname, url);
+            console.log(`[Launcher] Protocol handler - URL requisitada: ${url}`);
+            console.log(`[Launcher] Protocol handler - Caminho resolvido: ${filePath}`);
+            if (!fs.existsSync(filePath)) {
+                console.error(`[Launcher] Arquivo não encontrado: ${filePath}`);
+                return new Response("Not found", { status: 404 });
+            }
+            const content = await fs.promises.readFile(filePath);
+            return new Response(content, {
+                headers: { "content-type": getMime(filePath) },
+            });
+        }
+        catch (err) {
+            console.error("[Launcher] Erro ao carregar recurso:", err);
+            return new Response("Internal error", { status: 500 });
+        }
+    });
+});
+electron_2.autoUpdater.on("update-available", () => {
+    console.log("Nova atualização disponível!");
+});
+electron_2.autoUpdater.on("update-downloaded", () => {
+    electron_1.dialog
+        .showMessageBox({
+        type: "info",
+        title: "Atualização pronta",
+        message: "Uma nova versão foi baixada. O app será reiniciado para instalar a atualização.",
+        buttons: ["Reiniciar agora"],
+    })
+        .then(() => {
+        electron_2.autoUpdater.quitAndInstall();
+    });
 });
 electron_1.app.on("window-all-closed", () => {
     if (process.platform !== "darwin")
