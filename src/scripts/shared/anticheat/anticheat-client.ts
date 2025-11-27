@@ -36,6 +36,12 @@
     'cloudflare.com',
     'jquery.com',
     'bootstrapcdn.com',
+    'lngtd.com',
+    'script.4dex.io',
+    '4dex.io',
+    's.lngtdv.com',
+    'btloader.com',
+    'ats.rlcdn.com'
   ];
 
   const CONTEXT_SAFE_KEYWORDS = [

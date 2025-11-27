@@ -84,7 +84,7 @@
     const mean = intervals.reduce((a, b) => a + b, 0) / intervals.length;
     const squaredDiffs = intervals.map(x => Math.pow(x - mean, 2));
     const variance = squaredDiffs.reduce((a, b) => a + b, 0) / intervals.length;
-    return Math.sqrt(variance); // Retornar desvio padrão
+    return Math.sqrt(variance);
   }
 
   function findConsecutiveSameIntervals(intervals: number[]): number {

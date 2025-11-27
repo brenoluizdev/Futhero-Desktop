@@ -75,10 +75,12 @@ function createWindow() {
     icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
-      contextIsolation: true,
-      sandbox: !isDev,
+      contextIsolation: false,
       nodeIntegration: false,
-      webSecurity: !isDev,
+      sandbox: false,
+      webSecurity: false,
+      allowRunningInsecureContent: true,
+      backgroundThrottling: false,
       devTools: isDev,
     },
   });

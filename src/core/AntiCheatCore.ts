@@ -161,7 +161,6 @@ export class AntiCheatCore {
     console.error('[AntiCheat] Maximum violations reached. Triggering protective measures.');
     console.error('[AntiCheat] USER BANNED - Too many violations');
     
-    // Limpar intervalos
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval as any);
     }

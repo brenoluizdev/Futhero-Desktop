@@ -1,10 +1,8 @@
-// Performance Optimizer - Auto-aplica configurações ao carregar o jogo
 (function() {
     'use strict';
 
     console.log('[Futhero Performance] Inicializando otimizador...');
 
-    // Carregar configurações
     const settings = {
         unlockFPS: localStorage.getItem('fh_unlock_fps') === 'true',
         hardwareAccel: localStorage.getItem('fh_hardware_accel') === 'true',
@@ -13,11 +11,9 @@
         prioritizePerformance: localStorage.getItem('fh_prioritize_perf') === 'true'
     };
 
-    // 1. DESTRAVAR FPS
     if (settings.unlockFPS) {
         console.log('[Futhero] Aplicando: FPS Desbloqueado');
         
-        // Override requestAnimationFrame para remover throttling
         const nativeRAF = window.requestAnimationFrame;
         let highPerformanceMode = true;
         
@@ -30,7 +26,6 @@
             return nativeRAF.call(window, callback);
         };
 
-        // Otimizar renderização de canvas
         const styleOptimizer = document.createElement('style');
         styleOptimizer.textContent = `
             canvas {
@@ -42,11 +37,9 @@
         document.head.appendChild(styleOptimizer);
     }
 
-    // 2. ACELERAÇÃO DE HARDWARE
     if (settings.hardwareAccel) {
         console.log('[Futhero] Aplicando: Aceleração de Hardware');
         
-        // Configurar todos os canvas para hardware acceleration
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 mutation.addedNodes.forEach((node) => {
@@ -62,21 +55,18 @@
             subtree: true
         });
 
-        // Otimizar canvas existentes
         document.querySelectorAll('canvas').forEach(canvas => {
             optimizeCanvas(canvas as HTMLCanvasElement);
         });
 
         function optimizeCanvas(canvas: HTMLCanvasElement) {
             try {
-                // Forçar contexto acelerado por hardware
                 const ctx = canvas.getContext('2d', {
                     alpha: false,
                     desynchronized: true,
                     willReadFrequently: false
                 });
 
-                // WebGL também
                 const glCtx = canvas.getContext('webgl2', {
                     alpha: false,
                     antialias: false,
@@ -98,28 +88,21 @@
         }
     }
 
-    // 3. MODO BAIXA LATÊNCIA
     if (settings.lowLatency) {
         console.log('[Futhero] Aplicando: Modo Baixa Latência');
         
-        // Reduzir buffer de eventos
         const events = ['keydown', 'keyup', 'mousedown', 'mouseup', 'mousemove', 'click'];
         
         events.forEach(eventType => {
             document.addEventListener(eventType, (e) => {
-                // Processar imediatamente sem buffer
                 e.stopImmediatePropagation();
             }, { capture: true, passive: false });
         });
 
-        // Desabilitar smooth scrolling
         document.documentElement.style.scrollBehavior = 'auto';
-        
-        // Otimizar pointer events
         document.body.style.touchAction = 'none';
     }
 
-    // 4. DESATIVAR ANIMAÇÕES
     if (settings.disableAnimations) {
         console.log('[Futhero] Aplicando: Desativando Animações');
         
@@ -134,7 +117,6 @@
                 scroll-behavior: auto !important;
             }
             
-            /* Manter animações essenciais do jogo */
             canvas, canvas * {
                 animation-duration: initial !important;
                 transition-duration: initial !important;
@@ -143,11 +125,9 @@
         document.head.appendChild(noAnimStyle);
     }
 
-    // 5. MODO PERFORMANCE TOTAL
     if (settings.prioritizePerformance) {
         console.log('[Futhero] Aplicando: Modo Performance Total');
         
-        // Desabilitar recursos pesados do navegador
         const perfStyle = document.createElement('style');
         perfStyle.textContent = `
             * {
@@ -160,14 +140,12 @@
                 image-rendering: -webkit-optimize-contrast !important;
             }
             
-            /* Desabilitar efeitos visuais pesados */
             * {
                 box-shadow: none !important;
                 text-shadow: none !important;
                 filter: none !important;
             }
             
-            /* Permitir efeitos apenas no canvas do jogo */
             canvas {
                 box-shadow: initial !important;
                 filter: initial !important;
@@ -175,12 +153,10 @@
         `;
         document.head.appendChild(perfStyle);
 
-        // Desabilitar recursos não essenciais
         if ('mediaDevices' in navigator) {
-            // Liberar recursos de mídia não utilizados
+
         }
 
-        // Garbage collector agressivo
         setInterval(() => {
             if (window.gc) {
                 window.gc();
@@ -188,7 +164,6 @@
         }, 30000);
     }
 
-    // Monitor de Performance
     let fpsCounter = 0;
     let lastFpsTime = performance.now();
     
