@@ -110,7 +110,6 @@ function createWindow() {
 
     console.log(`[Launcher] Injetando ${scripts.length} scripts...`);
 
-    // Aguarda um pouco para garantir que o DOM está pronto
     setTimeout(() => {
       for (const scriptPath of scripts) {
         try {
@@ -131,7 +130,7 @@ function createWindow() {
       }
 
       console.log("[Launcher] Injeção de scripts concluída.");
-    }, 500); // Aguarda 500ms
+    }, 500);
   });
 
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
