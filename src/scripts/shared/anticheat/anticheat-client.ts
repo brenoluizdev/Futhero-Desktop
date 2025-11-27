@@ -41,7 +41,8 @@
     '4dex.io',
     's.lngtdv.com',
     'btloader.com',
-    'ats.rlcdn.com'
+    'ats.rlcdn.com',
+    'st.pubmatic.com'
   ];
 
   const CONTEXT_SAFE_KEYWORDS = [

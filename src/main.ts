@@ -75,13 +75,12 @@ function createWindow() {
     icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
-      contextIsolation: false,
       nodeIntegration: false,
+      contextIsolation: true,
       sandbox: false,
       webSecurity: false,
       allowRunningInsecureContent: true,
-      backgroundThrottling: false,
-      devTools: isDev,
+      plugins: true,
     },
   });
 
@@ -243,9 +242,239 @@ app.whenReady().then(() => {
     mainWindow.loadURL(currentGameUrl);
   });
 
+  ipcMain.handle("fullscreen-element", async (event, selector: string) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) return { success: false, error: "Window not found" };
+
+    try {
+      const result = await event.sender.executeJavaScript(`
+      (function() {
+        const iframe = document.getElementById('maingameframe');
+        if (!iframe || !iframe.contentWindow) {
+          console.error('[Fullscreen] Iframe não encontrado');
+          return { success: false, error: 'iframe_not_found' };
+        }
+
+        const iframeDoc = iframe.contentWindow.document;
+        const element = iframeDoc.querySelector('${selector}');
+        
+        if (!element) {
+          console.error('[Fullscreen] Elemento não encontrado:', '${selector}');
+          return { success: false, error: 'element_not_found' };
+        }
+
+        const bgReplay = iframeDoc.querySelector('#bgreplay');
+        if (bgReplay) {
+          bgReplay.style.textAlign = 'center';
+          bgReplay.style.display = 'flex';
+          bgReplay.style.alignItems = 'center';
+          bgReplay.style.justifyContent = 'center';
+          console.log('[Fullscreen] #bgreplay centralizado');
+        }
+
+        if (element.requestFullscreen) {
+          element.requestFullscreen();
+        } else if (element.webkitRequestFullscreen) {
+          element.webkitRequestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+          element.mozRequestFullScreen();
+        } else if (element.msRequestFullscreen) {
+          element.msRequestFullscreen();
+        } else {
+          console.error('[Fullscreen] API de fullscreen não suportada');
+          return { success: false, error: 'fullscreen_not_supported' };
+        }
+        
+        return { success: true };
+      })();
+    `);
+
+      console.log('[Fullscreen] Resultado:', result);
+
+      return result || { success: false, error: 'no_result' };
+
+    } catch (error: any) {
+      console.error('[Fullscreen] Erro ao aplicar fullscreen:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle("exit-fullscreen", async (event) => {
+  try {
+    const result = await event.sender.executeJavaScript(`
+      (function() {
+        const iframe = document.getElementById('maingameframe');
+        if (iframe && iframe.contentWindow) {
+          const iframeDoc = iframe.contentWindow.document;
+          const bgReplay = iframeDoc.querySelector('#bgreplay');
+          if (bgReplay) {
+            bgReplay.style.textAlign = '';
+            bgReplay.style.display = '';
+            bgReplay.style.alignItems = '';
+            bgReplay.style.justifyContent = '';
+            console.log('[Fullscreen] #bgreplay restaurado ao estilo original');
+          }
+        }
+
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+        
+        return { success: true };
+      })();
+    `);
+
+    console.log('[Fullscreen] Saiu do fullscreen');
+    return result || { success: true };
+    
+  } catch (error: any) {
+    console.error('[Fullscreen] Erro ao sair do fullscreen:', error);
+    return { success: false, error: error.message };
+  }
+});
+
   ipcMain.on("anticheat-violation", (event, data) => {
     console.warn("[Launcher] Violação AntiCheat:", data);
     antiCheatCore?.reportViolation(data);
+  });
+
+  ipcMain.on("notification", (event, message: string) => {
+    console.log("[Launcher] Notificação recebida:", message);
+
+    const sanitizedMessage = String(message)
+      .replace(/\\/g, '\\\\')
+      .replace(/`/g, '\\`')
+      .replace(/\$/g, '\\$')
+      .replace(/'/g, "\\'")
+      .replace(/"/g, '\\"');
+
+    const notificationScript = `
+    (function() {
+      const message = "${sanitizedMessage}";
+      
+      const createNotification = (targetDoc, targetContainer) => {
+        const existingNotifications = targetContainer.querySelectorAll('.futhero-notification');
+        existingNotifications.forEach(n => n.remove());
+
+        const notification = targetDoc.createElement('div');
+        notification.className = 'futhero-notification';
+        notification.innerHTML = \`
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 4px; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 2px; position: absolute; left: 0; top: 0;"></div>
+            <div style="font-size: 24px; margin-left: 12px;">🔔</div>
+            <div style="flex: 1; color: #fff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; font-weight: 500;">\${message}</div>
+            <button class="futhero-notification-close" style="background: transparent; border: none; color: #b9bbbe; cursor: pointer; font-size: 20px; padding: 4px 8px; transition: all 0.2s; border-radius: 4px;">✕</button>
+          </div>
+        \`;
+        
+        notification.style.cssText = \`
+          position: fixed !important;
+          top: 20px !important;
+          right: 20px !important;
+          background: #2f3136 !important;
+          border-radius: 8px !important;
+          padding: 16px 20px !important;
+          min-width: 300px !important;
+          max-width: 400px !important;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8) !important;
+          z-index: 2147483647 !important;
+          animation: slideIn 0.3s ease-out !important;
+          border: 1px solid #40444b !important;
+          backdrop-filter: blur(10px) !important;
+          pointer-events: auto !important;
+        \`;
+
+        if (!targetDoc.querySelector('#futhero-notification-styles')) {
+          const style = targetDoc.createElement('style');
+          style.id = 'futhero-notification-styles';
+          style.textContent = \`
+            @keyframes slideIn {
+              from { transform: translateX(400px); opacity: 0; }
+              to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+              from { transform: translateX(0); opacity: 1; }
+              to { transform: translateX(400px); opacity: 0; }
+            }
+            .futhero-notification-close:hover {
+              background: #f04747 !important;
+              color: white !important;
+            }
+            .futhero-notification {
+              position: fixed !important;
+              z-index: 2147483647 !important;
+            }
+          \`;
+          targetDoc.head.appendChild(style);
+        }
+
+        targetContainer.appendChild(notification);
+
+        const removeNotification = () => {
+          notification.style.animation = 'slideOut 0.3s ease-out';
+          setTimeout(() => {
+            if (notification.parentNode) {
+              notification.remove();
+            }
+          }, 300);
+        };
+
+        const closeBtn = notification.querySelector('.futhero-notification-close');
+        if (closeBtn) {
+          closeBtn.addEventListener('click', removeNotification);
+        }
+
+        setTimeout(removeNotification, 5000);
+      };
+
+      const fullscreenElement = document.fullscreenElement 
+        || document.webkitFullscreenElement 
+        || document.mozFullScreenElement 
+        || document.msFullscreenElement;
+
+      if (fullscreenElement) {
+        if (fullscreenElement.id === 'maingameframe') {
+          const iframeDoc = fullscreenElement.contentWindow.document;
+          const bonkioContainer = iframeDoc.querySelector('#bonkiocontainer');
+          if (bonkioContainer) {
+            createNotification(iframeDoc, bonkioContainer);
+          } else {
+            createNotification(iframeDoc, iframeDoc.body);
+          }
+        } else {
+          createNotification(document, fullscreenElement);
+        }
+      } else {
+        const iframe = document.getElementById('maingameframe');
+        if (iframe && iframe.contentWindow) {
+          const iframeDoc = iframe.contentWindow.document;
+          const iframeFullscreenElement = iframeDoc.fullscreenElement 
+            || iframeDoc.webkitFullscreenElement 
+            || iframeDoc.mozFullScreenElement 
+            || iframeDoc.msFullscreenElement;
+          
+          if (iframeFullscreenElement) {
+            createNotification(iframeDoc, iframeFullscreenElement);
+          } else {
+            createNotification(document, document.body);
+          }
+        } else {
+          createNotification(document, document.body);
+        }
+      }
+    })();
+  `;
+
+    event.sender.executeJavaScript(notificationScript)
+      .catch(error => {
+        console.error('[Notification] Erro ao exibir notificação:', error);
+      });
   });
 
   ipcMain.handle(

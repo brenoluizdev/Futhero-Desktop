@@ -2,13 +2,12 @@
   console.log('[Launcher] Bonk.io ad cleaner initialized.');
 
   const remove = () => {
-    const bonkAdIds = ['adboxverticalleftCurse', 'adboxverticalrightCurse', 'bonk_d_1', 'bonk_d_2'];
+    const bonkAdIds = ['adboxverticalleftCurse', 'adboxverticalrightCurse', 'bonk_d_1', 'bonk_d_2', 'bonkioheader'];
 
     const adSelectors = [
       'iframe[id^="google_ads_iframe_"]',
       'div[id^="google_ads_iframe_"]',
       'div[id*="gpt"]',
-      'div[id*="lngtd"]',
       'div[id*="bonk_D_"]',
       'div[class*="ad-container"]',
       'div[class*="adbox"]',

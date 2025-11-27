@@ -46,19 +46,19 @@
     const overlay = document.createElement("div");
     overlay.id = "fh-menu-overlay";
     overlay.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.85);
-      z-index: 999999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-    `;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 2147483646;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  `;
 
     const modal = document.createElement("div");
     modal.style.cssText = `
@@ -237,7 +237,55 @@
 
   function createHomePage() {
     const page = document.createElement("div");
+
     page.innerHTML = `
+    <div style="
+      background: #202225;
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid #2f3136;
+      box-shadow: 0 0 12px rgba(0,0,0,0.3);
+      position: relative;
+    ">
+      <!-- Botão de Fullscreen -->
+      <button id="fullscreen-btn"
+        style="
+          position: absolute;
+          top: 16px;
+          right: 120px;
+          background: #5865f2;
+          border: none;
+          color: white;
+          padding: 8px 14px;
+          border-radius: 6px;
+          font-family: 'Segoe UI', Arial, sans-serif;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: 0.2s;
+        ">
+        ⛶ Fullscreen
+      </button>
+
+      <button id="test-notification-btn"
+        style="
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          background: #43b581;
+          border: none;
+          color: white;
+          padding: 8px 14px;
+          border-radius: 6px;
+          font-family: 'Segoe UI', Arial, sans-serif;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: 0.2s;
+        ">
+        🔔 Testar
+      </button>
+
       <h1 style="color: #fff; font-family: 'Segoe UI', Arial, sans-serif; font-size: 24px; font-weight: 600; margin: 0 0 8px 0;">
         Bem-vindo ao Futhero Launcher
       </h1>
@@ -273,9 +321,88 @@
           </p>
         </div>
       </div>
-    `;
+    </div>
+  `;
+
+    setTimeout(() => {
+      const btn = page.querySelector("#fullscreen-btn") as HTMLButtonElement;
+      const testNotifBtn = page.querySelector("#test-notification-btn") as HTMLButtonElement;
+
+      if (!btn) return;
+
+      let fullscreen = false;
+
+      document.addEventListener('fullscreenchange', () => {
+        if (!document.fullscreenElement) {
+          fullscreen = false;
+          btn.textContent = "⛶ Fullscreen";
+        }
+      });
+
+      btn.addEventListener("click", async () => {
+        try {
+          if (!fullscreen) {
+            const result = await (window as any).futheroLauncherAPI.fullscreenElement("#bonkiocontainer");
+
+            console.log('[Fullscreen] Resultado recebido:', result);
+
+            if (result && result.success) {
+              fullscreen = true;
+              btn.textContent = "🗗 Sair do Fullscreen";
+
+              (window as any).futheroLauncherAPI.sendNotification("Modo Fullscreen ativado! Pressione ESC para sair.");
+            } else {
+              console.error('[Fullscreen] Falha ao aplicar fullscreen:', result?.error);
+              (window as any).futheroLauncherAPI.sendNotification("❌ Erro ao ativar fullscreen");
+            }
+          } else {
+            await (window as any).futheroLauncherAPI.exitFullscreen();
+            fullscreen = false;
+            btn.textContent = "⛶ Fullscreen";
+          }
+        } catch (error) {
+          console.error('[Fullscreen] Erro:', error);
+          (window as any).futheroLauncherAPI.sendNotification("❌ Erro ao ativar fullscreen");
+        }
+      });
+
+      if (testNotifBtn) {
+        testNotifBtn.addEventListener("click", () => {
+          const messages = [
+            "✅ Sistema funcionando perfeitamente!",
+            "🎮 Bem-vindo ao Futhero Launcher!",
+            "⚡ Performance otimizada!",
+            "🔒 AntiCheat ativo e protegendo seu jogo",
+            "💬 Junte-se ao nosso Discord!"
+          ];
+
+          const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+          (window as any).futheroLauncherAPI.sendNotification(randomMessage);
+        });
+
+        testNotifBtn.addEventListener("mouseenter", () => {
+          testNotifBtn.style.background = "#3ba55d";
+        });
+
+        testNotifBtn.addEventListener("mouseleave", () => {
+          testNotifBtn.style.background = "#43b581";
+        });
+      }
+
+      btn.addEventListener("mouseenter", () => {
+        btn.style.background = "#4752c4";
+        btn.style.transform = "scale(1.05)";
+      });
+
+      btn.addEventListener("mouseleave", () => {
+        btn.style.background = "#5865f2";
+        btn.style.transform = "scale(1)";
+      });
+    }, 30);
+
     return page;
   }
+
 
   function createGamePage() {
     const page = document.createElement("div");
@@ -288,9 +415,8 @@
         Gerenciar Jogos
       </h1>
       <p style="color: #b9bbbe; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; margin: 0 0 32px 0;">
-        Você está jogando: <span style="color: #667eea; font-weight: 600;">${
-          isHaxball ? "Haxball" : isBonk ? "Bonk.io" : "Nenhum"
-        }</span>
+        Você está jogando: <span style="color: #667eea; font-weight: 600;">${isHaxball ? "Haxball" : isBonk ? "Bonk.io" : "Nenhum"
+      }</span>
       </p>
       
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
@@ -418,9 +544,8 @@
           </p>
         </div>
         <label class="fh-toggle">
-          <input type="checkbox" id="toggle-fps" ${
-            settings.unlockFPS ? "checked" : ""
-          }>
+          <input type="checkbox" id="toggle-fps" ${settings.unlockFPS ? "checked" : ""
+      }>
           <span class="fh-toggle-slider"></span>
         </label>
       </div>
@@ -437,9 +562,8 @@
           </p>
         </div>
         <label class="fh-toggle">
-          <input type="checkbox" id="toggle-hardware" ${
-            settings.hardwareAccel ? "checked" : ""
-          }>
+          <input type="checkbox" id="toggle-hardware" ${settings.hardwareAccel ? "checked" : ""
+      }>
           <span class="fh-toggle-slider"></span>
         </label>
       </div>
@@ -456,9 +580,8 @@
           </p>
         </div>
         <label class="fh-toggle">
-          <input type="checkbox" id="toggle-latency" ${
-            settings.lowLatency ? "checked" : ""
-          }>
+          <input type="checkbox" id="toggle-latency" ${settings.lowLatency ? "checked" : ""
+      }>
           <span class="fh-toggle-slider"></span>
         </label>
       </div>
@@ -475,9 +598,8 @@
           </p>
         </div>
         <label class="fh-toggle">
-          <input type="checkbox" id="toggle-animations" ${
-            settings.disableAnimations ? "checked" : ""
-          }>
+          <input type="checkbox" id="toggle-animations" ${settings.disableAnimations ? "checked" : ""
+      }>
           <span class="fh-toggle-slider"></span>
         </label>
       </div>
@@ -494,9 +616,8 @@
           </p>
         </div>
         <label class="fh-toggle">
-          <input type="checkbox" id="toggle-priority" ${
-            settings.prioritizePerformance ? "checked" : ""
-          }>
+          <input type="checkbox" id="toggle-priority" ${settings.prioritizePerformance ? "checked" : ""
+      }>
           <span class="fh-toggle-slider"></span>
         </label>
       </div>
@@ -508,14 +629,12 @@
       </h4>
       <div id="system-info" style="color: rgba(255,255,255,0.9); font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; line-height: 1.8;">
         <div>🖥️ Núcleos: ${navigator.hardwareConcurrency || "N/A"}</div>
-        <div>💾 Memória: ${
-          (navigator as any).deviceMemory
-            ? (navigator as any).deviceMemory + " GB"
-            : "N/A"
-        }</div>
-        <div>🌐 Conexão: ${
-          (navigator as any).connection?.effectiveType || "N/A"
-        }</div>
+        <div>💾 Memória: ${(navigator as any).deviceMemory
+        ? (navigator as any).deviceMemory + " GB"
+        : "N/A"
+      }</div>
+        <div>🌐 Conexão: ${(navigator as any).connection?.effectiveType || "N/A"
+      }</div>
       </div>
     </div>
 

@@ -9,7 +9,7 @@
     "moduleResolution": "node",
     "skipLibCheck": true,
     "sourceMap": true,
-    "types": ["node", "electron"]
+    "types": ["node", "electron"],
   },
   "include": ["src/**/*"],
   "exclude": ["src/scripts", "dist", "node_modules"]
