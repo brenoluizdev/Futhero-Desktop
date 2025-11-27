@@ -33,7 +33,7 @@ function createWindow() {
       sandbox: true,
       webSecurity: true
     },
-    icon: path.join(__dirname$1, "../../assets/icon.png")
+    icon: path.join(__dirname$1, "./assets/icon.ico")
   });
   if (isDev) {
     mainWindow.webContents.openDevTools();

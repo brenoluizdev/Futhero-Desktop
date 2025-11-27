@@ -11,7 +11,7 @@
     "dev:electron": "electron .",
     "build": "vite build && esbuild server/_core/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "build:frontend": "vite build",
-    "build:electron": "vite build -c vite.config.electron.ts && vite build -c vite.config.preload.ts && vite build -c vite.config.injector.ts",
+    "build:electron": "vite build -c vite.config.electron.ts && vite build -c vite.config.preload.ts && vite build -c vite.config.injector.ts && vite build -c vite.config.assets.ts",
     "start": "cross-env NODE_ENV=production node dist/index.js",
     "check": "tsc --noEmit",
     "format": "prettier --write .",
@@ -118,6 +118,7 @@
     "typescript": "5.9.3",
     "vite": "^7.2.4",
     "vite-plugin-manus-runtime": "^0.0.56",
+    "vite-plugin-static-copy": "^3.1.4",
     "vitest": "^2.1.4"
   },
   "packageManager": "pnpm@10.4.1+sha512.c753b6c3ad7afa13af388fa6d808035a008e30ea9993f58c6663e2bc5ff21679aa834db094987129aa4d488b86df57f7b634981b2f827cdcacc698cc0cfb88af",

@@ -43,7 +43,7 @@ function createWindow() {
       sandbox: true,
       webSecurity: true,
     },
-    icon: path.join(__dirname, "../../assets/icon.png"),
+    icon: path.join(__dirname, "./assets/icon.ico"),
   });
 
   if (isDev) {
