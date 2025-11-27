@@ -2,13 +2,10 @@ import { app, BrowserWindow, Menu, protocol, ipcMain, dialog } from "electron";
 import * as path from "path";
 import * as fs from "fs";
 import { GameUrls, GameType } from "./types/games.types";
-import { AntiCheatCore } from "./core/AntiCheatCore";
 import { autoUpdater } from "electron-updater";
 require("dotenv").config();
 
 const isDev = require("electron-is-dev");
-
-let antiCheatCore: AntiCheatCore | null = null;
 
 function detectGameType(url: string): GameType | null {
   if (url.includes("haxball.com")) return GameType.HAXBALL;
@@ -88,19 +85,6 @@ function createWindow() {
     autoUpdater.checkForUpdatesAndNotify();
   }
 
-  antiCheatCore = new AntiCheatCore({
-    enableMemoryProtection: true,
-    enableSpeedHackDetection: true,
-    enablePacketValidation: true,
-    enableDebuggerDetection: !isDev,
-    monitoringInterval: 1000,
-    maxViolationsBeforeBan: 5,
-    reportToServer: false,
-  });
-
-  antiCheatCore.initialize();
-  console.log("[Launcher] AntiCheat Core inicializado");
-
   mainWindow.loadURL(currentGameUrl);
 
   if (app.isPackaged) Menu.setApplicationMenu(null);
@@ -126,25 +110,28 @@ function createWindow() {
 
     console.log(`[Launcher] Injetando ${scripts.length} scripts...`);
 
-    for (const scriptPath of scripts) {
-      try {
-        const scriptCode = fs.readFileSync(scriptPath, "utf8");
-        mainWindow.webContents.executeJavaScript(scriptCode);
+    // Aguarda um pouco para garantir que o DOM está pronto
+    setTimeout(() => {
+      for (const scriptPath of scripts) {
+        try {
+          const scriptCode = fs.readFileSync(scriptPath, "utf8");
+          mainWindow.webContents.executeJavaScript(scriptCode);
 
-        const relative = path.relative(
-          path.join(__dirname, "scripts"),
-          scriptPath
-        );
-        console.log(`[Launcher] [OK] ${relative}`);
-      } catch (error) {
-        console.error(
-          `[Launcher] ERRO ao injetar ${path.basename(scriptPath)}`,
-          error
-        );
+          const relative = path.relative(
+            path.join(__dirname, "scripts"),
+            scriptPath
+          );
+          console.log(`[Launcher] [OK] ${relative}`);
+        } catch (error) {
+          console.error(
+            `[Launcher] ERRO ao injetar ${path.basename(scriptPath)}`,
+            error
+          );
+        }
       }
-    }
 
-    console.log("[Launcher] Injeção de scripts concluída.");
+      console.log("[Launcher] Injeção de scripts concluída.");
+    }, 500); // Aguarda 500ms
   });
 
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
@@ -153,14 +140,6 @@ function createWindow() {
     const newType = detectGameType(url);
     console.log(`[Launcher] Navegação detectada: ${url}`);
     console.log(`[Launcher] Novo jogo: ${newType || "Desconhecido"}`);
-  });
-
-  mainWindow.on("closed", () => {
-    if (antiCheatCore) {
-      antiCheatCore.destroy();
-      antiCheatCore = null;
-      console.log("[Launcher] AntiCheat Core destruído");
-    }
   });
 
   return mainWindow;
@@ -300,8 +279,8 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle("exit-fullscreen", async (event) => {
-  try {
-    const result = await event.sender.executeJavaScript(`
+    try {
+      const result = await event.sender.executeJavaScript(`
       (function() {
         const iframe = document.getElementById('maingameframe');
         if (iframe && iframe.contentWindow) {
@@ -330,18 +309,13 @@ app.whenReady().then(() => {
       })();
     `);
 
-    console.log('[Fullscreen] Saiu do fullscreen');
-    return result || { success: true };
-    
-  } catch (error: any) {
-    console.error('[Fullscreen] Erro ao sair do fullscreen:', error);
-    return { success: false, error: error.message };
-  }
-});
+      console.log('[Fullscreen] Saiu do fullscreen');
+      return result || { success: true };
 
-  ipcMain.on("anticheat-violation", (event, data) => {
-    console.warn("[Launcher] Violação AntiCheat:", data);
-    antiCheatCore?.reportViolation(data);
+    } catch (error: any) {
+      console.error('[Fullscreen] Erro ao sair do fullscreen:', error);
+      return { success: false, error: error.message };
+    }
   });
 
   ipcMain.on("notification", (event, message: string) => {
@@ -475,16 +449,6 @@ app.whenReady().then(() => {
       .catch(error => {
         console.error('[Notification] Erro ao exibir notificação:', error);
       });
-  });
-
-  ipcMain.handle(
-    "get-anticheat-violations",
-    () => antiCheatCore?.getViolations() ?? []
-  );
-
-  ipcMain.on("clear-anticheat-violations", () => {
-    antiCheatCore?.clearViolations();
-    console.log("[Launcher] Violações do AntiCheat limpas");
   });
 
   app.on("activate", () => {

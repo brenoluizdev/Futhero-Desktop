@@ -1,5 +1,40 @@
 import { contextBridge, ipcRenderer } from "electron";
 
+// ============= INTERCEPTADOR DE DEBUG =============
+// Remove depois de encontrar o problema
+const originalSend = ipcRenderer.send.bind(ipcRenderer);
+(ipcRenderer as any).send = function(channel: string, ...args: any[]) {
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('[IPC INTERCEPTOR] Canal:', channel);
+  console.log('[IPC INTERCEPTOR] Args:', args);
+  
+  args.forEach((arg, index) => {
+    console.log(`[IPC INTERCEPTOR] Arg ${index}:`, typeof arg, arg);
+    
+    try {
+      const serialized = JSON.stringify(arg);
+      console.log(`[IPC INTERCEPTOR] Arg ${index} OK - tamanho: ${serialized.length} chars`);
+    } catch (e: any) {
+      console.error(`[IPC INTERCEPTOR] ❌ Arg ${index} NÃO serializável!`, e.message);
+      
+      if (arg && typeof arg === 'object') {
+        console.log('[IPC INTERCEPTOR] Chaves:', Object.keys(arg));
+      }
+    }
+  });
+  
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  
+  try {
+    return originalSend(channel, ...args);
+  } catch (error: any) {
+    console.error('[IPC INTERCEPTOR] ❌❌❌ ERRO NO SEND:', error.message);
+    console.error('[IPC INTERCEPTOR] Stack:', error.stack);
+    throw error;
+  }
+};
+// ============= FIM DO INTERCEPTADOR =============
+
 window.addEventListener("DOMContentLoaded", () => {
   console.log("[Preload] DOM loaded, aplicando fixes Bonk.io");
 
@@ -23,55 +58,35 @@ const futheroLauncherAPI = {
   sendNotification: (message: string) => {
     try {
       console.log("[API] sendNotification chamado");
-      console.log("[API] Tipo do message:", typeof message);
-      console.log("[API] Valor do message:", message);
-      console.log("[API] É string?", typeof message === 'string');
+      console.log("[API] message:", message);
       
-      let messageStr: string;
-      
-      if (message === null || message === undefined) {
-        messageStr = "";
-        console.warn("[API] Message é null/undefined, usando string vazia");
-      } else if (typeof message === 'object') {
-        console.error("[API] ERRO: Message é um objeto!", message);
-        messageStr = JSON.stringify(message);
-      } else {
-        messageStr = String(message);
-      }
-      
-      if (typeof messageStr !== 'string') {
-        console.error("[API] ERRO: messageStr não é string primitiva!", typeof messageStr);
-        messageStr = String(messageStr);
-      }
-      
-      messageStr = messageStr.substring(0, 500);
+      // Garante que é string primitiva
+      const messageStr = String(message).substring(0, 500);
       
       console.log("[API] Enviando via IPC:", messageStr);
-      
       ipcRenderer.send("notification", messageStr);
+      console.log("[API] Send concluído");
       
-      console.log("[API] IPC send concluído com sucesso");
     } catch (error: any) {
-      console.error("[API] ERRO CRÍTICO ao enviar notificação:", error);
-      console.error("[API] Stack trace:", error.stack);
+      console.error("[API] ERRO:", error);
     }
   },
 
   switchGame: (gameType: string) => {
-    console.log("[API] switchGame chamado:", gameType);
+    console.log("[API] switchGame:", gameType);
     ipcRenderer.send("switch-game", gameType);
   },
 
   fullscreenElement: async (selector: string) => {
-    console.log("[API] fullscreenElement chamado:", selector);
+    console.log("[API] fullscreenElement:", selector);
     return ipcRenderer.invoke("fullscreen-element", selector);
   },
 
   exitFullscreen: async () => {
-    console.log("[API] exitFullscreen chamado");
+    console.log("[API] exitFullscreen");
     return ipcRenderer.invoke("exit-fullscreen");
   },
-
+  
   getCurrentUrl: () => window.location.href,
 
   log: (message: string) => console.log(`[Futhero] ${message}`),
