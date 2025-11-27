@@ -1,14 +1,13 @@
-import { app, BrowserWindow, BrowserView, ipcMain } from 'electron';
-import { autoUpdater } from 'electron-updater';
-import * as path from 'path';
+import { app, BrowserWindow, ipcMain } from "electron";
+import { autoUpdater } from "electron-updater";
+import * as path from "path";
 
 let mainWindow: BrowserWindow | null = null;
-let gameView: BrowserView | null = null;
-let currentGame: 'bonk' | 'haxball' | null = null;
+let currentGame: "bonk" | "haxball" | null = null;
 
 const GAME_URLS = {
-  bonk: 'https://bonk.io',
-  haxball: 'https://www.haxball.com'
+  bonk: "https://bonk.io",
+  haxball: "https://www.haxball.com",
 };
 
 // Configuração do Auto-Updater
@@ -22,135 +21,112 @@ function createWindow(): void {
     minWidth: 800,
     minHeight: 600,
     frame: true,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: "#1a1a1a",
     webPreferences: {
-      preload: path.join(__dirname, '../preload/preload.js'),
+      preload: path.join(__dirname, "../preload/preload.js"),
       contextIsolation: true,
+      sandbox: false,
       nodeIntegration: false,
-      sandbox: true
-    }
+      webSecurity: false,
+      devTools: true,
+    },
   });
 
-  // Load da UI principal
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.loadURL('http://localhost:8081');
+  if (process.env.NODE_ENV === "development") {
+    mainWindow.loadURL("http://localhost:8081");
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+    mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
   }
 
   // Auto-updater events
-  autoUpdater.on('update-available', () => {
-    mainWindow?.webContents.send('update-available');
+  autoUpdater.on("update-available", () => {
+    mainWindow?.webContents.send("update-available");
   });
 
-  autoUpdater.on('update-downloaded', () => {
-    mainWindow?.webContents.send('update-downloaded');
+  autoUpdater.on("update-downloaded", () => {
+    mainWindow?.webContents.send("update-downloaded");
   });
 
-  autoUpdater.on('error', (err) => {
-    console.error('Update error:', err);
+  autoUpdater.on("error", (err) => {
+    console.error("Update error:", err);
   });
 
-  // Check for updates (apenas em produção)
-  if (process.env.NODE_ENV !== 'development') {
+  if (process.env.NODE_ENV !== "development") {
     autoUpdater.checkForUpdatesAndNotify();
   }
 }
 
-function createGameView(game: 'bonk' | 'haxball'): void {
+function launchGameWindow(game: "bonk" | "haxball") {
   if (!mainWindow) return;
 
   currentGame = game;
-  
-  // Remove view anterior se existir
-  if (gameView) {
-    mainWindow.removeBrowserView(gameView);
-    gameView.webContents.close();
-  }
 
-  gameView = new BrowserView({
+  const gameWindow = new BrowserWindow({
+    parent: mainWindow,
+    modal: false,
+    width: 1280,
+    height: 720,
+    minWidth: 800,
+    minHeight: 600,
     webPreferences: {
-      preload: path.join(__dirname, '../preload/injector.js'),
+      preload: path.join(__dirname, "../preload/injector.js"),
       contextIsolation: true,
+      sandbox: false,
       nodeIntegration: false,
-      sandbox: true
-    }
+      webSecurity: false,
+      devTools: true,
+    },
   });
 
-  mainWindow.addBrowserView(gameView);
-  
-  // Ajustar bounds do BrowserView
-  const bounds = mainWindow.getContentBounds();
-  gameView.setBounds({
-    x: 0,
-    y: 0,
-    width: bounds.width,
-    height: bounds.height
+  gameWindow.loadURL(GAME_URLS[game]);
+
+  // Abrir popups externos em novas janelas
+  gameWindow.webContents.setWindowOpenHandler(({ url }) => {
+    const popup = new BrowserWindow({
+      parent: mainWindow!,
+      width: 800,
+      height: 600,
+      webPreferences: {
+        contextIsolation: true,
+        sandbox: false,
+        nodeIntegration: false,
+        webSecurity: false,
+      },
+    });
+    popup.loadURL(url);
+    return { action: "deny" };
   });
 
-  gameView.setAutoResize({
-    width: true,
-    height: true
-  });
-
-  // Carregar o jogo
-  gameView.webContents.loadURL(GAME_URLS[game]);
-
-  // Ocultar a UI principal
-  mainWindow.webContents.send('game-loaded', game);
-}
-
-function closeGameView(): void {
-  if (!mainWindow || !gameView) return;
-
-  mainWindow.removeBrowserView(gameView);
-  gameView.webContents.close();
-  gameView = null;
-  currentGame = null;
-
-  mainWindow.webContents.send('game-closed');
+  // Enviar evento para renderer
+  mainWindow.webContents.send("game-loaded", game);
 }
 
 // IPC Handlers
-ipcMain.handle('launch-game', async (_, game: 'bonk' | 'haxball') => {
-  createGameView(game);
+ipcMain.handle("launch-game", async (_, game: "bonk" | "haxball") => {
+  launchGameWindow(game);
   return { success: true };
 });
 
-ipcMain.handle('close-game', async () => {
-  closeGameView();
-  return { success: true };
-});
-
-ipcMain.handle('switch-game', async (_, game: 'bonk' | 'haxball') => {
-  createGameView(game);
-  return { success: true };
-});
-
-ipcMain.handle('get-current-game', async () => {
+ipcMain.handle("get-current-game", async () => {
   return currentGame;
 });
 
-ipcMain.handle('get-app-version', async () => {
+ipcMain.handle("get-app-version", async () => {
   return app.getVersion();
 });
 
-ipcMain.handle('quit-and-install', async () => {
+ipcMain.handle("quit-and-install", async () => {
   autoUpdater.quitAndInstall();
 });
 
 // App lifecycle
 app.whenReady().then(createWindow);
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
 });
 
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
+app.on("activate", () => {
+  if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
