@@ -10,10 +10,7 @@ const isDev = require("electron-is-dev");
 autoUpdater.logger = console;
 autoUpdater.autoDownload = true;
 autoUpdater.allowDowngrade = false;
-autoUpdater.allowPrerelease = false; // Mude para true se quiser testar com pre-releases
-
-// IMPORTANTE: Force verificação mesmo se estiver na mesma versão (apenas para debug)
-// autoUpdater.forceDevUpdateConfig = true; // Descomente se precisar testar em dev
+autoUpdater.allowPrerelease = false;
 
 autoUpdater.on("checking-for-update", () => {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -276,11 +273,9 @@ app.whenReady().then(() => {
 
   const mainWindow = createWindow();
 
-  // ============= VERIFICAR ATUALIZAÇÕES =============
   if (!isDev) {
     console.log("[AutoUpdater] App empacotado, verificando atualizações...");
 
-    // Aguarda 3 segundos após o app carregar para verificar
     setTimeout(() => {
       autoUpdater.checkForUpdates()
         .then((result) => {
@@ -291,7 +286,6 @@ app.whenReady().then(() => {
         });
     }, 3000);
 
-    // Verificar a cada 10 minutos
     setInterval(() => {
       console.log("[AutoUpdater] Verificação periódica...");
       autoUpdater.checkForUpdates();
@@ -299,7 +293,6 @@ app.whenReady().then(() => {
   } else {
     console.log("[AutoUpdater] Modo DEV, atualizações desabilitadas");
   }
-  // ============= FIM VERIFICAÇÃO ATUALIZAÇÕES =============
 
   ipcMain.on("switch-game", (event, type: GameType) => {
     console.log(`[Launcher] Trocando para: ${type}`);

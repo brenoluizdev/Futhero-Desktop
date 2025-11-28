@@ -1,7 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
 
-// ============= INTERCEPTADOR DE DEBUG =============
-// Remove depois de encontrar o problema
 const originalSend = ipcRenderer.send.bind(ipcRenderer);
 (ipcRenderer as any).send = function(channel: string, ...args: any[]) {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -33,7 +31,6 @@ const originalSend = ipcRenderer.send.bind(ipcRenderer);
     throw error;
   }
 };
-// ============= FIM DO INTERCEPTADOR =============
 
 window.addEventListener("DOMContentLoaded", () => {
   console.log("[Preload] DOM loaded, aplicando fixes Bonk.io");
@@ -60,7 +57,6 @@ const futheroLauncherAPI = {
       console.log("[API] sendNotification chamado");
       console.log("[API] message:", message);
       
-      // Garante que é string primitiva
       const messageStr = String(message).substring(0, 500);
       
       console.log("[API] Enviando via IPC:", messageStr);
@@ -86,7 +82,7 @@ const futheroLauncherAPI = {
     console.log("[API] exitFullscreen");
     return ipcRenderer.invoke("exit-fullscreen");
   },
-  
+
   getCurrentUrl: () => window.location.href,
 
   log: (message: string) => console.log(`[Futhero] ${message}`),

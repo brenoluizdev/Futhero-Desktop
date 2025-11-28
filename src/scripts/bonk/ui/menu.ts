@@ -35,7 +35,6 @@
         console.log("[BonkMenu] UI do Bonk.io detectada");
 
         injectBonkMenu();
-
         setupMutationObserver(iframeDoc);
     }
 
@@ -58,8 +57,6 @@
             console.log("[BonkMenu] Menu já existe, pulando injeção");
             return;
         }
-
-        prettyTopBar.style.backgroundColor = '#ff6700 !important';
 
         const menu = iframeDoc.createElement('div');
         menu.id = 'futhero_menu';
@@ -133,17 +130,9 @@
                     0% { transform: translateX(-100%) rotate(45deg); }
                     100% { transform: translateX(100%) rotate(45deg); }
                 }
-                @keyframes pulse {
-                    0%, 100% { transform: scale(1); }
-                    50% { transform: scale(1.02); }
-                }
                 @keyframes float {
                     0%, 100% { transform: translateY(0px); }
                     50% { transform: translateY(-10px); }
-                }
-                @keyframes glow {
-                    0%, 100% { box-shadow: 0 0 20px rgba(255, 103, 0, 0.3); }
-                    50% { box-shadow: 0 0 40px rgba(255, 103, 0, 0.6); }
                 }
             `;
             document.head.appendChild(style);
@@ -193,6 +182,21 @@
             flexDirection: 'column'
         });
 
+        const header = createHeader(() => overlay.remove());
+        const mainContainer = createMainContainer();
+        const footer = createFooter();
+
+        modal.appendChild(header);
+        modal.appendChild(mainContainer);
+        modal.appendChild(footer);
+        overlay.appendChild(modal);
+
+        bonkContainer.appendChild(overlay);
+
+        console.log("[BonkMenu] ✅ Modal criado no #bonkiocontainer");
+    }
+
+    function createHeader(onClose: () => void) {
         const header = document.createElement('div');
         Object.assign(header.style, {
             background: 'linear-gradient(135deg, #1a1f2e 0%, #0f1419 100%)',
@@ -225,7 +229,7 @@
         headerTitle.style.position = 'relative';
         headerTitle.innerHTML = `
             <span style="color: #ff6700; text-shadow: 0 0 20px rgba(255, 103, 0, 0.5);">⚡</span>
-            <span style="margin-left: 10px;">brenoluizdev</span>
+            <span style="margin-left: 10px;">FUTHERO</span>
             <span style="color: #888; font-size: 14px; margin-left: 15px; font-weight: normal;">Enhanced Menu</span>
         `;
         header.appendChild(headerTitle);
@@ -246,8 +250,7 @@
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontWeight: 'bold',
-            position: 'relative'
+            fontWeight: 'bold'
         });
         closeBtn.addEventListener('mouseenter', () => {
             closeBtn.style.background = 'rgba(255, 103, 0, 0.2)';
@@ -259,11 +262,13 @@
             closeBtn.style.transform = 'rotate(0deg) scale(1)';
             closeBtn.style.boxShadow = 'none';
         });
-        closeBtn.addEventListener('click', () => {
-            overlay.remove();
-        });
+        closeBtn.addEventListener('click', onClose);
         header.appendChild(closeBtn);
 
+        return header;
+    }
+
+    function createMainContainer() {
         const mainContainer = document.createElement('div');
         Object.assign(mainContainer.style, {
             flex: '1',
@@ -281,27 +286,12 @@
         });
 
         const gameSection = createSection('🎮', 'GAME CONTROLS', 'Control your gaming experience');
-
         const fullscreenBtn = createButton('🖥️ FULLSCREEN MODE', 'Enter immersive fullscreen mode');
         fullscreenBtn.addEventListener('click', async () => {
-            overlay.remove();
-
+            document.getElementById('futhero_modal_overlay')?.remove();
             const iframe = document.getElementById('maingameframe') as HTMLIFrameElement;
-
             await (window as any).futheroLauncherAPI.fullscreenElement("#bonkiocontainer");
-
-            if (iframe) {
-                if (iframe.requestFullscreen) {
-                    iframe.requestFullscreen();
-                } else if ((iframe as any).webkitRequestFullscreen) {
-                    (iframe as any).webkitRequestFullscreen();
-                } else if ((iframe as any).mozRequestFullScreen) {
-                    (iframe as any).mozRequestFullScreen();
-                } else if ((iframe as any).msRequestFullscreen) {
-                    (iframe as any).msRequestFullscreen();
-                }
-                console.log("[BonkMenu] Modo fullscreen ativado");
-            }
+            if (iframe?.requestFullscreen) iframe.requestFullscreen();
         });
         gameSection.appendChild(fullscreenBtn);
 
@@ -317,50 +307,169 @@
             border: '1px solid rgba(255, 103, 0, 0.1)'
         });
         gameSection.appendChild(quickTip);
-
         grid.appendChild(gameSection);
 
-        const settingsSection = createSection('⚙️', 'SETTINGS', 'Customize your preferences');
-
-        const placeholder = document.createElement('div');
-        placeholder.textContent = 'More options coming soon...';
-        Object.assign(placeholder.style, {
-            padding: '30px',
-            textAlign: 'center',
-            color: '#666',
-            fontSize: '14px',
-            fontStyle: 'italic'
-        });
-        settingsSection.appendChild(placeholder);
-
-        grid.appendChild(settingsSection);
+        const perfSection = createPerformanceSection();
+        grid.appendChild(perfSection);
 
         mainContainer.appendChild(grid);
+        return mainContainer;
+    }
 
-        const footer = document.createElement('div');
-        footer.innerHTML = `
-            <span style="color: #666;">Powered by</span>
-            <span style="color: #ff6700; font-weight: bold; margin-left: 5px;">FUTHERO</span>
-            <span style="color: #666; margin-left: 15px;">•</span>
-            <span style="color: #666; margin-left: 15px; font-size: 12px;">Version 2.0</span>
+    function createPerformanceSection() {
+        const section = createSection('⚡', 'PERFORMANCE', 'Optimize your game performance');
+
+        const unlockFPSContainer = createToggleOption(
+            '🚀 Unlock FPS',
+            'Remove FPS limitations for smoother gameplay',
+            () => {
+                const perfManager = (window as any).futheroPerformance;
+                if (perfManager) {
+                    const isUnlocked = perfManager.toggleUnlockFPS();
+                    return isUnlocked;
+                }
+                return false;
+            },
+            () => {
+                const perfManager = (window as any).futheroPerformance;
+                return perfManager?.isUnlocked() || false;
+            }
+        );
+        section.appendChild(unlockFPSContainer);
+
+        const showFPSContainer = createToggleOption(
+            '📊 Show FPS Counter',
+            'Display real-time FPS on screen',
+            () => {
+                const fpsDisplay = document.getElementById('futhero-fps-display');
+                if (fpsDisplay) {
+                    const isVisible = fpsDisplay.style.display !== 'none';
+                    fpsDisplay.style.display = isVisible ? 'none' : 'block';
+                    return !isVisible;
+                }
+                return false;
+            },
+            () => {
+                const fpsDisplay = document.getElementById('futhero-fps-display');
+                return fpsDisplay?.style.display !== 'none';
+            }
+        );
+        section.appendChild(showFPSContainer);
+
+        const infoBox = document.createElement('div');
+        infoBox.innerHTML = `
+            <div style="display: flex; align-items: start; gap: 10px;">
+                <div style="font-size: 20px;">ℹ️</div>
+                <div>
+                    <div style="color: #fff; font-weight: bold; margin-bottom: 5px;">Performance Tips</div>
+                    <div style="color: #888; font-size: 12px; line-height: 1.5;">
+                        • Unlock FPS for maximum smoothness<br>
+                        • Monitor FPS to check performance<br>
+                        • Close other apps for better results
+                    </div>
+                </div>
+            </div>
         `;
-        Object.assign(footer.style, {
-            padding: '20px 35px',
-            borderTop: '2px solid rgba(255, 103, 0, 0.2)',
-            background: 'linear-gradient(135deg, #1a1f2e 0%, #0f1419 100%)',
-            textAlign: 'center',
-            fontSize: '14px',
-            fontFamily: 'futurept_b1'
+        Object.assign(infoBox.style, {
+            marginTop: '20px',
+            padding: '15px',
+            background: 'rgba(255, 103, 0, 0.05)',
+            borderRadius: '10px',
+            border: '1px solid rgba(255, 103, 0, 0.1)',
+            fontSize: '13px'
+        });
+        section.appendChild(infoBox);
+
+        return section;
+    }
+
+    function createToggleOption(
+        label: string,
+        description: string,
+        onToggle: () => boolean,
+        getInitialState: () => boolean
+    ) {
+        const container = document.createElement('div');
+        Object.assign(container.style, {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '15px',
+            background: 'rgba(255, 103, 0, 0.05)',
+            borderRadius: '10px',
+            border: '1px solid rgba(255, 103, 0, 0.1)',
+            marginBottom: '15px',
+            transition: 'all 0.3s ease'
         });
 
-        modal.appendChild(header);
-        modal.appendChild(mainContainer);
-        modal.appendChild(footer);
-        overlay.appendChild(modal);
+        container.addEventListener('mouseenter', () => {
+            container.style.background = 'rgba(255, 103, 0, 0.08)';
+            container.style.borderColor = 'rgba(255, 103, 0, 0.2)';
+        });
 
-        bonkContainer.appendChild(overlay);
+        container.addEventListener('mouseleave', () => {
+            container.style.background = 'rgba(255, 103, 0, 0.05)';
+            container.style.borderColor = 'rgba(255, 103, 0, 0.1)';
+        });
 
-        console.log("[BonkMenu] ✅ Modal criado no #bonkiocontainer");
+        const textContainer = document.createElement('div');
+        textContainer.innerHTML = `
+            <div style="color: #fff; font-weight: bold; margin-bottom: 4px;">${label}</div>
+            <div style="color: #888; font-size: 12px;">${description}</div>
+        `;
+
+        const toggle = createToggleSwitch(getInitialState(), (newState) => {
+            const actualState = onToggle();
+            updateToggleState(toggle, actualState);
+        });
+
+        container.appendChild(textContainer);
+        container.appendChild(toggle);
+
+        return container;
+    }
+
+    function createToggleSwitch(initialState: boolean, onChange: (state: boolean) => void) {
+        const toggle = document.createElement('div');
+        Object.assign(toggle.style, {
+            width: '50px',
+            height: '26px',
+            background: initialState ? '#ff6700' : '#333',
+            borderRadius: '13px',
+            position: 'relative',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            flexShrink: '0'
+        });
+
+        const knob = document.createElement('div');
+        Object.assign(knob.style, {
+            width: '20px',
+            height: '20px',
+            background: '#fff',
+            borderRadius: '50%',
+            position: 'absolute',
+            top: '3px',
+            left: initialState ? '27px' : '3px',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+        });
+
+        toggle.appendChild(knob);
+
+        toggle.addEventListener('click', () => {
+            onChange(!initialState);
+        });
+
+        return toggle;
+    }
+
+    function updateToggleState(toggle: HTMLElement, isActive: boolean) {
+        const knob = toggle.querySelector('div') as HTMLElement;
+        toggle.style.background = isActive ? '#ff6700' : '#333';
+        if (knob) {
+            knob.style.left = isActive ? '27px' : '3px';
+        }
     }
 
     function createSection(icon: string, title: string, subtitle: string) {
@@ -441,10 +550,29 @@
         return btn;
     }
 
+    function createFooter() {
+        const footer = document.createElement('div');
+        footer.innerHTML = `
+            <span style="color: #666;">Powered by</span>
+            <span style="color: #ff6700; font-weight: bold; margin-left: 5px;">brenoluizdev</span>
+            <span style="color: #666; margin-left: 15px;">•</span>
+            <span style="color: #666; margin-left: 15px; font-size: 12px;">Version 2.1</span>
+        `;
+        Object.assign(footer.style, {
+            padding: '20px 35px',
+            borderTop: '2px solid rgba(255, 103, 0, 0.2)',
+            background: 'linear-gradient(135deg, #1a1f2e 0%, #0f1419 100%)',
+            textAlign: 'center',
+            fontSize: '14px',
+            fontFamily: 'futurept_b1'
+        });
+        return footer;
+    }
+
     function setupMutationObserver(iframeDoc: Document) {
         if (observerActive) return;
 
-        const observer = new MutationObserver((mutations) => {
+        const observer = new MutationObserver(() => {
             const prettyTopBar = iframeDoc.querySelector('#pretty_top_bar');
             const menuExists = prettyTopBar?.querySelector('#futhero_menu');
 
@@ -475,10 +603,7 @@
             (document as any).mozFullScreenElement ||
             (document as any).msFullscreenElement);
 
-        if (isFullscreen) {
-            console.log("[BonkMenu] Fullscreen ativado - menu permanece acessível");
-        } else {
-            console.log("[BonkMenu] Fullscreen desativado");
+        if (!isFullscreen) {
             setTimeout(() => {
                 if (!menuInjected) {
                     waitForBonkUI();
@@ -498,15 +623,11 @@
                 if (currentUrl && currentUrl !== lastUrl) {
                     lastUrl = currentUrl;
                     console.log("[BonkMenu] Navegação detectada:", currentUrl);
-
                     menuInjected = false;
                     observerActive = false;
-
                     setTimeout(() => waitForBonkUI(), 500);
                 }
-            } catch (e) {
-
-            }
+            } catch (e) {}
         }, 1000);
     }
 
