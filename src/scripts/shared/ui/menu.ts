@@ -225,7 +225,7 @@
         headerTitle.style.position = 'relative';
         headerTitle.innerHTML = `
             <span style="color: #ff6700; text-shadow: 0 0 20px rgba(255, 103, 0, 0.5);">⚡</span>
-            <span style="margin-left: 10px;">FUTHERO</span>
+            <span style="margin-left: 10px;">brenoluizdev</span>
             <span style="color: #888; font-size: 14px; margin-left: 15px; font-weight: normal;">Enhanced Menu</span>
         `;
         header.appendChild(headerTitle);
