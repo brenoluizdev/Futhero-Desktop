@@ -7,6 +7,93 @@ require("dotenv").config();
 
 const isDev = require("electron-is-dev");
 
+autoUpdater.logger = console;
+autoUpdater.autoDownload = true;
+autoUpdater.allowDowngrade = false;
+autoUpdater.allowPrerelease = false; // Mude para true se quiser testar com pre-releases
+
+// IMPORTANTE: Force verificação mesmo se estiver na mesma versão (apenas para debug)
+// autoUpdater.forceDevUpdateConfig = true; // Descomente se precisar testar em dev
+
+autoUpdater.on("checking-for-update", () => {
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("[AutoUpdater] 🔍 Verificando atualizações...");
+  console.log(`[AutoUpdater] Versão atual: ${app.getVersion()}`);
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+});
+
+autoUpdater.on("update-available", (info) => {
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("[AutoUpdater] ✅ Nova atualização disponível!");
+  console.log(`[AutoUpdater] Versão: ${info.version}`);
+  console.log(`[AutoUpdater] Release Date: ${info.releaseDate}`);
+  console.log(`[AutoUpdater] Release Notes: ${info.releaseNotes}`);
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+  dialog.showMessageBox({
+    type: "info",
+    title: "Atualização Disponível",
+    message: `Nova versão ${info.version} disponível!`,
+    detail: "Deseja baixar e instalar agora?",
+    buttons: ["Sim", "Depois"],
+    defaultId: 0,
+    cancelId: 1
+  }).then((result) => {
+    if (result.response === 0) {
+      console.log("[AutoUpdater] Usuário aceitou, iniciando download...");
+      autoUpdater.downloadUpdate();
+    } else {
+      console.log("[AutoUpdater] Usuário recusou a atualização");
+    }
+  });
+});
+
+autoUpdater.on("update-not-available", (info) => {
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("[AutoUpdater] ℹ️ Nenhuma atualização disponível");
+  console.log(`[AutoUpdater] Versão atual: ${info.version}`);
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+});
+
+autoUpdater.on("error", (err) => {
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.error("[AutoUpdater] ❌ ERRO:", err);
+  console.error("[AutoUpdater] Stack:", err.stack);
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+  dialog.showErrorBox(
+    "Erro na Atualização",
+    `Não foi possível verificar atualizações: ${err.message}`
+  );
+});
+
+autoUpdater.on("download-progress", (progressObj) => {
+  console.log(`[AutoUpdater] 📥 Download: ${Math.round(progressObj.percent)}%`);
+  console.log(`[AutoUpdater] Velocidade: ${(progressObj.bytesPerSecond / 1024 / 1024).toFixed(2)} MB/s`);
+});
+
+autoUpdater.on("update-downloaded", (info) => {
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  console.log("[AutoUpdater] ✅ Atualização baixada!");
+  console.log(`[AutoUpdater] Versão: ${info.version}`);
+  console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+  dialog.showMessageBox({
+    type: "info",
+    title: "Atualização Pronta",
+    message: `Versão ${info.version} foi baixada.`,
+    detail: "O app será reiniciado para instalar a atualização.",
+    buttons: ["Reiniciar Agora", "Depois"],
+    defaultId: 0
+  }).then((result) => {
+    if (result.response === 0) {
+      console.log("[AutoUpdater] Instalando e reiniciando...");
+      setImmediate(() => autoUpdater.quitAndInstall(false, true));
+    }
+  });
+});
+
+
 function detectGameType(url: string): GameType | null {
   if (url.includes("haxball.com")) return GameType.HAXBALL;
   if (url.includes("bonk.io")) return GameType.BONKIO;
@@ -80,10 +167,6 @@ function createWindow() {
       plugins: true,
     },
   });
-
-  if (!isDev) {
-    autoUpdater.checkForUpdatesAndNotify();
-  }
 
   mainWindow.loadURL(currentGameUrl);
 
@@ -165,37 +248,16 @@ function getMime(filePath: string): string {
   return mimeTypes[ext] || "application/octet-stream";
 }
 
-autoUpdater.on("update-available", () => {
-  console.log("Nova atualização disponível!");
-});
-
-autoUpdater.on("update-downloaded", () => {
-  dialog
-    .showMessageBox({
-      type: "info",
-      title: "Atualização pronta",
-      message:
-        "Uma nova versão foi baixada. O app será reiniciado para instalar a atualização.",
-      buttons: ["Reiniciar agora"],
-    })
-    .then(() => {
-      autoUpdater.quitAndInstall();
-    });
-});
-
 app.whenReady().then(() => {
   const isDev = !app.isPackaged;
 
   protocol.handle("app", async (request) => {
     try {
       const url = request.url.replace("app://", "");
-
       const filePath = path.join(__dirname, url);
 
       console.log(`[Launcher] Protocol handler - URL requisitada: ${url}`);
-      console.log(
-        `[Launcher] Protocol handler - Caminho resolvido: ${filePath}`
-      );
+      console.log(`[Launcher] Protocol handler - Caminho resolvido: ${filePath}`);
 
       if (!fs.existsSync(filePath)) {
         console.error(`[Launcher] Arquivo não encontrado: ${filePath}`);
@@ -213,6 +275,31 @@ app.whenReady().then(() => {
   });
 
   const mainWindow = createWindow();
+
+  // ============= VERIFICAR ATUALIZAÇÕES =============
+  if (!isDev) {
+    console.log("[AutoUpdater] App empacotado, verificando atualizações...");
+
+    // Aguarda 3 segundos após o app carregar para verificar
+    setTimeout(() => {
+      autoUpdater.checkForUpdates()
+        .then((result) => {
+          console.log("[AutoUpdater] Verificação iniciada:", result);
+        })
+        .catch((error) => {
+          console.error("[AutoUpdater] Erro ao iniciar verificação:", error);
+        });
+    }, 3000);
+
+    // Verificar a cada 10 minutos
+    setInterval(() => {
+      console.log("[AutoUpdater] Verificação periódica...");
+      autoUpdater.checkForUpdates();
+    }, 10 * 60 * 1000);
+  } else {
+    console.log("[AutoUpdater] Modo DEV, atualizações desabilitadas");
+  }
+  // ============= FIM VERIFICAÇÃO ATUALIZAÇÕES =============
 
   ipcMain.on("switch-game", (event, type: GameType) => {
     console.log(`[Launcher] Trocando para: ${type}`);
@@ -268,7 +355,6 @@ app.whenReady().then(() => {
     `);
 
       console.log('[Fullscreen] Resultado:', result);
-
       return result || { success: false, error: 'no_result' };
 
     } catch (error: any) {
