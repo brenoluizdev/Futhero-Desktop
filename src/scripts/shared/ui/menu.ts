@@ -1,4 +1,4 @@
-(function() {
+(function () {
     console.log("[BonkMenu] Script iniciado");
 
     let menuInjected = false;
@@ -6,7 +6,7 @@
 
     function waitForBonkUI() {
         const iframe = document.getElementById("maingameframe") as HTMLIFrameElement;
-        
+
         if (!iframe) {
             requestAnimationFrame(waitForBonkUI);
             return;
@@ -33,9 +33,9 @@
         }
 
         console.log("[BonkMenu] UI do Bonk.io detectada");
-        
+
         injectBonkMenu();
-        
+
         setupMutationObserver(iframeDoc);
     }
 
@@ -47,7 +47,7 @@
         }
 
         const iframeDoc = iframe.contentWindow.document;
-        const prettyTopBar = iframeDoc.querySelector('#pretty_top_bar');
+        const prettyTopBar = iframeDoc.getElementById('pretty_top_bar');
 
         if (!prettyTopBar) {
             console.error("[BonkMenu] #pretty_top_bar não encontrado");
@@ -59,11 +59,13 @@
             return;
         }
 
+        prettyTopBar.style.backgroundColor = '#ff6700 !important';
+
         const menu = iframeDoc.createElement('div');
         menu.id = 'futhero_menu';
         menu.className = 'niceborderright';
         menu.textContent = 'FUTHERO';
-        
+
         Object.assign(menu.style, {
             color: '#ffffff',
             fontFamily: 'futurept_b1',
@@ -85,174 +87,207 @@
 
         menu.addEventListener('click', () => {
             console.log("[BonkMenu] Menu clicado");
-            openFutheroModal(iframeDoc);
+            openFutheroModal();
         });
 
         prettyTopBar.appendChild(menu);
-        
+
         menuInjected = true;
         console.log("[BonkMenu] ✅ Menu injetado com sucesso");
     }
 
-    function openFutheroModal(iframeDoc: Document) {
-        if (iframeDoc.querySelector('#futhero_modal')) {
+    function openFutheroModal() {
+        const iframe = document.getElementById("maingameframe") as HTMLIFrameElement;
+        const iframeDoc = iframe.contentWindow?.document;
+        const bonkContainer = iframeDoc?.getElementById('bonkiocontainer');
+
+        if (!bonkContainer) {
+            console.error("[BonkMenu] #bonkiocontainer não encontrado");
+            return;
+        }
+
+        if (document.querySelector('#futhero_modal_overlay')) {
             console.log("[BonkMenu] Modal já existe");
             return;
         }
 
-        const modal = iframeDoc.createElement('div');
-        modal.id = 'futhero_modal';
-        modal.className = 'windowShadow';
-        
-        Object.assign(modal.style, {
-            width: '346px',
-            height: '430px',
-            position: 'absolute',
-            left: '0',
-            right: '0',
+        if (!document.getElementById('futhero_modal_styles')) {
+            const style = document.createElement('style');
+            style.id = 'futhero_modal_styles';
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes modalSlideIn {
+                    from { 
+                        opacity: 0;
+                        transform: scale(0.9) translateY(20px);
+                    }
+                    to { 
+                        opacity: 1;
+                        transform: scale(1) translateY(0);
+                    }
+                }
+                @keyframes shine {
+                    0% { transform: translateX(-100%) rotate(45deg); }
+                    100% { transform: translateX(100%) rotate(45deg); }
+                }
+                @keyframes pulse {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.02); }
+                }
+                @keyframes float {
+                    0%, 100% { transform: translateY(0px); }
+                    50% { transform: translateY(-10px); }
+                }
+                @keyframes glow {
+                    0%, 100% { box-shadow: 0 0 20px rgba(255, 103, 0, 0.3); }
+                    50% { box-shadow: 0 0 40px rgba(255, 103, 0, 0.6); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        const overlay = document.createElement('div');
+        overlay.id = 'futhero_modal_overlay';
+        Object.assign(overlay.style, {
+            position: 'fixed',
             top: '0',
-            bottom: '0',
-            margin: 'auto',
-            backgroundColor: '#e2e2e2',
-            fontFamily: 'futurept_b1',
-            borderRadius: '7px',
-            zIndex: '10000',
-            overflow: 'hidden'
+            left: '0',
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(8px)',
+            zIndex: '9999',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            animation: 'fadeIn 0.3s ease'
         });
 
-        const header = iframeDoc.createElement('div');
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.remove();
+            }
+        });
+
+        const modal = document.createElement('div');
+        modal.id = 'futhero_modal';
+        modal.className = 'windowShadow';
+
+        Object.assign(modal.style, {
+            width: '90%',
+            height: '85%',
+            maxWidth: '1400px',
+            maxHeight: '900px',
+            backgroundColor: '#0f1419',
+            fontFamily: 'futurept_b1',
+            borderRadius: '20px',
+            zIndex: '10000',
+            overflow: 'hidden',
+            boxShadow: '0 25px 80px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 103, 0, 0.3)',
+            border: '1px solid rgba(255, 103, 0, 0.15)',
+            animation: 'modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            display: 'flex',
+            flexDirection: 'column'
+        });
+
+        const header = document.createElement('div');
         Object.assign(header.style, {
-            background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)',
-            padding: '15px 20px',
+            background: 'linear-gradient(135deg, #1a1f2e 0%, #0f1419 100%)',
+            padding: '25px 35px',
             color: 'white',
-            fontSize: '18px',
+            fontSize: '24px',
             fontWeight: 'bold',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            borderRadius: '7px 7px 0 0',
-            boxShadow: '0 4px 15px rgba(255, 107, 53, 0.3)'
-        });
-        header.innerHTML = `
-            <span>⚡ FUTHERO MENU</span>
-        `;
-
-        // Botão fechar
-        const closeBtn = iframeDoc.createElement('button');
-        closeBtn.textContent = '✕';
-        Object.assign(closeBtn.style, {
-            background: 'rgba(255, 255, 255, 0.2)',
-            border: 'none',
-            color: 'white',
-            width: '30px',
-            height: '30px',
-            borderRadius: '50%',
-            cursor: 'pointer',
-            fontSize: '18px',
-            fontFamily: 'futurept_b1',
-            transition: 'all 0.2s ease',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-        });
-        closeBtn.addEventListener('mouseenter', () => {
-            closeBtn.style.background = 'rgba(255, 255, 255, 0.3)';
-            closeBtn.style.transform = 'rotate(90deg)';
-        });
-        closeBtn.addEventListener('mouseleave', () => {
-            closeBtn.style.background = 'rgba(255, 255, 255, 0.2)';
-            closeBtn.style.transform = 'rotate(0deg)';
-        });
-        closeBtn.addEventListener('click', () => {
-            modal.remove();
-        });
-        header.appendChild(closeBtn);
-
-        const container = iframeDoc.createElement('div');
-        Object.assign(container.style, {
-            margin: '20px',
-            padding: '25px',
-            background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-            borderRadius: '12px',
-            boxShadow: '0 8px 32px rgba(255, 107, 53, 0.2)',
-            border: '2px solid rgba(255, 107, 53, 0.3)',
+            borderBottom: '2px solid rgba(255, 103, 0, 0.2)',
             position: 'relative',
             overflow: 'hidden'
         });
 
-        const shine = iframeDoc.createElement('div');
-        Object.assign(shine.style, {
+        const headerShine = document.createElement('div');
+        Object.assign(headerShine.style, {
             position: 'absolute',
-            top: '-50%',
-            left: '-50%',
-            width: '200%',
-            height: '200%',
-            background: 'linear-gradient(45deg, transparent, rgba(255, 107, 53, 0.2), transparent)',
-            animation: 'shine 3s infinite',
+            top: '0',
+            left: '-100%',
+            width: '50%',
+            height: '100%',
+            background: 'linear-gradient(90deg, transparent, rgba(255, 103, 0, 0.1), transparent)',
+            animation: 'shine 4s infinite',
             pointerEvents: 'none'
         });
+        header.appendChild(headerShine);
 
-        const style = iframeDoc.createElement('style');
-        style.textContent = `
-            @keyframes shine {
-                0% { transform: translate(-100%, -100%) rotate(45deg); }
-                100% { transform: translate(100%, 100%) rotate(45deg); }
-            }
-            @keyframes pulse {
-                0%, 100% { transform: scale(1); }
-                50% { transform: scale(1.05); }
-            }
+        const headerTitle = document.createElement('div');
+        headerTitle.style.position = 'relative';
+        headerTitle.innerHTML = `
+            <span style="color: #ff6700; text-shadow: 0 0 20px rgba(255, 103, 0, 0.5);">⚡</span>
+            <span style="margin-left: 10px;">FUTHERO</span>
+            <span style="color: #888; font-size: 14px; margin-left: 15px; font-weight: normal;">Enhanced Menu</span>
         `;
-        iframeDoc.head.appendChild(style);
+        header.appendChild(headerTitle);
 
-        container.appendChild(shine);
-
-        const containerTitle = iframeDoc.createElement('div');
-        containerTitle.textContent = '🎮 GAME CONTROLS';
-        Object.assign(containerTitle.style, {
-            fontSize: '16px',
-            fontWeight: 'bold',
-            color: '#ff6b35',
-            marginBottom: '20px',
-            textAlign: 'center',
-            textShadow: '0 0 10px rgba(255, 107, 53, 0.5)'
-        });
-        container.appendChild(containerTitle);
-
-        const fullscreenBtn = iframeDoc.createElement('button');
-        fullscreenBtn.innerHTML = '🖥️ FULLSCREEN MODE';
-        Object.assign(fullscreenBtn.style, {
-            width: '100%',
-            padding: '18px',
-            background: 'linear-gradient(135deg, #ff6b35 0%, #f7931e 100%)',
-            border: 'none',
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✕';
+        Object.assign(closeBtn.style, {
+            background: 'rgba(255, 103, 0, 0.1)',
+            border: '1px solid rgba(255, 103, 0, 0.3)',
+            color: '#ff6700',
+            width: '40px',
+            height: '40px',
             borderRadius: '10px',
-            color: 'white',
-            fontSize: '16px',
-            fontFamily: 'futurept_b1',
             cursor: 'pointer',
-            boxShadow: '0 6px 20px rgba(255, 107, 53, 0.4)',
+            fontSize: '20px',
+            fontFamily: 'futurept_b1',
             transition: 'all 0.3s ease',
-            position: 'relative',
-            overflow: 'hidden',
-            fontWeight: 'bold'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 'bold',
+            position: 'relative'
+        });
+        closeBtn.addEventListener('mouseenter', () => {
+            closeBtn.style.background = 'rgba(255, 103, 0, 0.2)';
+            closeBtn.style.transform = 'rotate(90deg) scale(1.1)';
+            closeBtn.style.boxShadow = '0 0 20px rgba(255, 103, 0, 0.5)';
+        });
+        closeBtn.addEventListener('mouseleave', () => {
+            closeBtn.style.background = 'rgba(255, 103, 0, 0.1)';
+            closeBtn.style.transform = 'rotate(0deg) scale(1)';
+            closeBtn.style.boxShadow = 'none';
+        });
+        closeBtn.addEventListener('click', () => {
+            overlay.remove();
+        });
+        header.appendChild(closeBtn);
+
+        const mainContainer = document.createElement('div');
+        Object.assign(mainContainer.style, {
+            flex: '1',
+            padding: '40px',
+            overflowY: 'auto',
+            background: 'linear-gradient(180deg, #0f1419 0%, #1a1f2e 100%)'
         });
 
-        fullscreenBtn.addEventListener('mouseenter', () => {
-            fullscreenBtn.style.transform = 'translateY(-3px)';
-            fullscreenBtn.style.boxShadow = '0 10px 30px rgba(255, 107, 53, 0.6)';
-            fullscreenBtn.style.animation = 'pulse 1s infinite';
+        const grid = document.createElement('div');
+        Object.assign(grid.style, {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+            gap: '30px',
+            marginBottom: '30px'
         });
 
-        fullscreenBtn.addEventListener('mouseleave', () => {
-            fullscreenBtn.style.transform = 'translateY(0)';
-            fullscreenBtn.style.boxShadow = '0 6px 20px rgba(255, 107, 53, 0.4)';
-            fullscreenBtn.style.animation = 'none';
-        });
+        const gameSection = createSection('🎮', 'GAME CONTROLS', 'Control your gaming experience');
 
+        const fullscreenBtn = createButton('🖥️ FULLSCREEN MODE', 'Enter immersive fullscreen mode');
         fullscreenBtn.addEventListener('click', async () => {
+            overlay.remove();
+
             const iframe = document.getElementById('maingameframe') as HTMLIFrameElement;
-            
+
             await (window as any).futheroLauncherAPI.fullscreenElement("#bonkiocontainer");
 
             if (iframe) {
@@ -268,27 +303,142 @@
                 console.log("[BonkMenu] Modo fullscreen ativado");
             }
         });
+        gameSection.appendChild(fullscreenBtn);
 
-        container.appendChild(fullscreenBtn);
-
-        const info = iframeDoc.createElement('div');
-        info.textContent = '💡 Press ESC to exit fullscreen';
-        Object.assign(info.style, {
+        const quickTip = document.createElement('div');
+        quickTip.innerHTML = '💡 <span style="color: #888;">Quick Tip:</span> Press <span style="color: #ff6700; font-weight: bold;">ESC</span> to exit fullscreen';
+        Object.assign(quickTip.style, {
             marginTop: '15px',
-            fontSize: '12px',
-            color: '#ff6b35',
-            textAlign: 'center',
-            fontStyle: 'italic',
-            opacity: '0.8'
+            fontSize: '13px',
+            color: '#aaa',
+            padding: '12px',
+            background: 'rgba(255, 103, 0, 0.05)',
+            borderRadius: '8px',
+            border: '1px solid rgba(255, 103, 0, 0.1)'
         });
-        container.appendChild(info);
+        gameSection.appendChild(quickTip);
+
+        grid.appendChild(gameSection);
+
+        const settingsSection = createSection('⚙️', 'SETTINGS', 'Customize your preferences');
+
+        const placeholder = document.createElement('div');
+        placeholder.textContent = 'More options coming soon...';
+        Object.assign(placeholder.style, {
+            padding: '30px',
+            textAlign: 'center',
+            color: '#666',
+            fontSize: '14px',
+            fontStyle: 'italic'
+        });
+        settingsSection.appendChild(placeholder);
+
+        grid.appendChild(settingsSection);
+
+        mainContainer.appendChild(grid);
+
+        const footer = document.createElement('div');
+        footer.innerHTML = `
+            <span style="color: #666;">Powered by</span>
+            <span style="color: #ff6700; font-weight: bold; margin-left: 5px;">FUTHERO</span>
+            <span style="color: #666; margin-left: 15px;">•</span>
+            <span style="color: #666; margin-left: 15px; font-size: 12px;">Version 2.0</span>
+        `;
+        Object.assign(footer.style, {
+            padding: '20px 35px',
+            borderTop: '2px solid rgba(255, 103, 0, 0.2)',
+            background: 'linear-gradient(135deg, #1a1f2e 0%, #0f1419 100%)',
+            textAlign: 'center',
+            fontSize: '14px',
+            fontFamily: 'futurept_b1'
+        });
 
         modal.appendChild(header);
-        modal.appendChild(container);
+        modal.appendChild(mainContainer);
+        modal.appendChild(footer);
+        overlay.appendChild(modal);
 
-        iframeDoc.body.appendChild(modal);
+        bonkContainer.appendChild(overlay);
 
-        console.log("[BonkMenu] ✅ Modal criado com sucesso");
+        console.log("[BonkMenu] ✅ Modal criado no #bonkiocontainer");
+    }
+
+    function createSection(icon: string, title: string, subtitle: string) {
+        const section = document.createElement('div');
+        Object.assign(section.style, {
+            background: 'linear-gradient(135deg, #1a1f2e 0%, #151a24 100%)',
+            borderRadius: '16px',
+            padding: '30px',
+            border: '1px solid rgba(255, 103, 0, 0.15)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+            transition: 'all 0.3s ease',
+            position: 'relative',
+            overflow: 'hidden'
+        });
+
+        section.addEventListener('mouseenter', () => {
+            section.style.transform = 'translateY(-5px)';
+            section.style.boxShadow = '0 12px 48px rgba(255, 103, 0, 0.2)';
+            section.style.borderColor = 'rgba(255, 103, 0, 0.3)';
+        });
+
+        section.addEventListener('mouseleave', () => {
+            section.style.transform = 'translateY(0)';
+            section.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3)';
+            section.style.borderColor = 'rgba(255, 103, 0, 0.15)';
+        });
+
+        const sectionHeader = document.createElement('div');
+        sectionHeader.innerHTML = `
+            <div style="font-size: 32px; margin-bottom: 10px; animation: float 3s ease-in-out infinite;">${icon}</div>
+            <div style="font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 5px;">${title}</div>
+            <div style="font-size: 13px; color: #888;">${subtitle}</div>
+        `;
+        Object.assign(sectionHeader.style, {
+            marginBottom: '25px'
+        });
+
+        section.appendChild(sectionHeader);
+
+        return section;
+    }
+
+    function createButton(text: string, tooltip: string) {
+        const btn = document.createElement('button');
+        btn.innerHTML = text;
+        Object.assign(btn.style, {
+            width: '100%',
+            padding: '18px 24px',
+            background: 'linear-gradient(135deg, rgba(255, 103, 0, 0.15) 0%, rgba(255, 103, 0, 0.08) 100%)',
+            border: '2px solid rgba(255, 103, 0, 0.3)',
+            borderRadius: '12px',
+            color: '#fff',
+            fontSize: '16px',
+            fontFamily: 'futurept_b1',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            fontWeight: 'bold',
+            position: 'relative',
+            overflow: 'hidden'
+        });
+
+        btn.setAttribute('title', tooltip);
+
+        btn.addEventListener('mouseenter', () => {
+            btn.style.background = 'linear-gradient(135deg, rgba(255, 103, 0, 0.25) 0%, rgba(255, 103, 0, 0.15) 100%)';
+            btn.style.transform = 'translateY(-2px)';
+            btn.style.boxShadow = '0 8px 24px rgba(255, 103, 0, 0.3)';
+            btn.style.borderColor = 'rgba(255, 103, 0, 0.5)';
+        });
+
+        btn.addEventListener('mouseleave', () => {
+            btn.style.background = 'linear-gradient(135deg, rgba(255, 103, 0, 0.15) 0%, rgba(255, 103, 0, 0.08) 100%)';
+            btn.style.transform = 'translateY(0)';
+            btn.style.boxShadow = 'none';
+            btn.style.borderColor = 'rgba(255, 103, 0, 0.3)';
+        });
+
+        return btn;
     }
 
     function setupMutationObserver(iframeDoc: Document) {
@@ -312,6 +462,29 @@
 
         observerActive = true;
         console.log("[BonkMenu] MutationObserver ativo");
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+        document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+    }
+
+    function handleFullscreenChange() {
+        const isFullscreen = !!(document.fullscreenElement ||
+            (document as any).webkitFullscreenElement ||
+            (document as any).mozFullScreenElement ||
+            (document as any).msFullscreenElement);
+
+        if (isFullscreen) {
+            console.log("[BonkMenu] Fullscreen ativado - menu permanece acessível");
+        } else {
+            console.log("[BonkMenu] Fullscreen desativado");
+            setTimeout(() => {
+                if (!menuInjected) {
+                    waitForBonkUI();
+                }
+            }, 500);
+        }
     }
 
     function monitorIframeNavigation() {
@@ -325,18 +498,18 @@
                 if (currentUrl && currentUrl !== lastUrl) {
                     lastUrl = currentUrl;
                     console.log("[BonkMenu] Navegação detectada:", currentUrl);
-                    
+
                     menuInjected = false;
                     observerActive = false;
-                    
+
                     setTimeout(() => waitForBonkUI(), 500);
                 }
             } catch (e) {
-                
+
             }
         }, 1000);
     }
-    
+
     waitForBonkUI();
     monitorIframeNavigation();
 
