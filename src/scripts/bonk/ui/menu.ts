@@ -322,17 +322,17 @@
         const unlockFPSContainer = createToggleOption(
             '🚀 Unlock FPS',
             'Remove FPS limitations for smoother gameplay',
-            () => {
-                const perfManager = (window as any).futheroPerformance;
-                if (perfManager) {
-                    const isUnlocked = perfManager.toggleUnlockFPS();
+            async () => {
+                const futheroLauncherAPI = (window as any).futheroLauncherAPI;
+                if (futheroLauncherAPI) {
+                    const isUnlocked = await futheroLauncherAPI.toggleUnlimitedFPS();
                     return isUnlocked;
                 }
                 return false;
             },
-            () => {
-                const perfManager = (window as any).futheroPerformance;
-                return perfManager?.isUnlocked() || false;
+            async () => {
+                const futheroLauncherAPI = (window as any).futheroLauncherAPI;
+                return await futheroLauncherAPI?.isUnlockedFps() || false;
             }
         );
         section.appendChild(unlockFPSContainer);
@@ -340,7 +340,7 @@
         const showFPSContainer = createToggleOption(
             '📊 Show FPS Counter',
             'Display real-time FPS on screen',
-            () => {
+            async () => {
                 const fpsDisplay = document.getElementById('futhero-fps-display');
                 if (fpsDisplay) {
                     const isVisible = fpsDisplay.style.display !== 'none';
@@ -349,7 +349,7 @@
                 }
                 return false;
             },
-            () => {
+            async () => {
                 const fpsDisplay = document.getElementById('futhero-fps-display');
                 return fpsDisplay?.style.display !== 'none';
             }
@@ -386,10 +386,11 @@
     function createToggleOption(
         label: string,
         description: string,
-        onToggle: () => boolean,
-        getInitialState: () => boolean
+        onToggle: () => Promise<boolean>,
+        getInitialState: () => Promise<boolean>
     ) {
         const container = document.createElement('div');
+
         Object.assign(container.style, {
             display: 'flex',
             justifyContent: 'space-between',
@@ -418,9 +419,13 @@
             <div style="color: #888; font-size: 12px;">${description}</div>
         `;
 
-        const toggle = createToggleSwitch(getInitialState(), (newState) => {
-            const actualState = onToggle();
+        const toggle = createToggleSwitch(false, async (newState) => {
+            const actualState = await onToggle();
             updateToggleState(toggle, actualState);
+        });
+
+        getInitialState().then(state => {
+            updateToggleState(toggle, state);
         });
 
         container.appendChild(textContainer);
@@ -429,7 +434,10 @@
         return container;
     }
 
-    function createToggleSwitch(initialState: boolean, onChange: (state: boolean) => void) {
+    function createToggleSwitch(
+        initialState: boolean,
+        onChange: (state: boolean) => Promise<void>
+    ) {
         const toggle = document.createElement('div');
         Object.assign(toggle.style, {
             width: '50px',
@@ -457,8 +465,16 @@
 
         toggle.appendChild(knob);
 
-        toggle.addEventListener('click', () => {
-            onChange(!initialState);
+        let currentState = initialState;
+
+        toggle.addEventListener('click', async () => {
+            toggle.style.pointerEvents = 'none';
+
+            try {
+                await onChange(!currentState);
+            } finally {
+                toggle.style.pointerEvents = 'auto';
+            }
         });
 
         return toggle;
@@ -627,7 +643,7 @@
                     observerActive = false;
                     setTimeout(() => waitForBonkUI(), 500);
                 }
-            } catch (e) {}
+            } catch (e) { }
         }, 1000);
     }
 

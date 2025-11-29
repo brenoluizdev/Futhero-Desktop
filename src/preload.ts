@@ -68,6 +68,9 @@ const futheroLauncherAPI = {
     }
   },
 
+  toggleUnlimitedFPS: () => ipcRenderer.invoke("toggleUnlimitedFPS"),
+  isUnlockedFps: () => ipcRenderer.invoke("isUnlockedFps"),
+
   switchGame: (gameType: string) => {
     console.log("[API] switchGame:", gameType);
     ipcRenderer.send("switch-game", gameType);

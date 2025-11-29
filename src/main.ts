@@ -7,6 +7,48 @@ require("dotenv").config();
 
 const isDev = require("electron-is-dev");
 
+const configPath = path.join(app.getPath('userData'), 'futhero-config.json');
+
+function loadConfig(): { unlimitedFPS: boolean } {
+  try {
+    if (fs.existsSync(configPath)) {
+      const data = fs.readFileSync(configPath, 'utf8');
+      const config = JSON.parse(data);
+      console.log('[Config] Configuração carregada:', config);
+      return config;
+    }
+  } catch (error) {
+    console.error('[Config] Erro ao carregar config:', error);
+  }
+  console.log('[Config] Usando configuração padrão');
+  return { unlimitedFPS: false };
+}
+
+function saveConfig(config: { unlimitedFPS: boolean }) {
+  try {
+    const dir = path.dirname(configPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');
+    console.log('[Config] ✅ Configuração salva:', config);
+  } catch (error) {
+    console.error('[Config] ❌ Erro ao salvar config:', error);
+  }
+}
+
+const config = loadConfig();
+let unlimitedFPS = config.unlimitedFPS;
+let mainWindow: BrowserWindow | null = null;
+
+console.log(`[FPS] Estado carregado: ${unlimitedFPS ? 'DESBLOQUEADO' : 'BLOQUEADO'}`);
+
+if (unlimitedFPS) {
+  console.log("[FPS] Aplicando flags de FPS ilimitado...");
+  app.commandLine.appendSwitch("disable-frame-rate-limit");
+  app.commandLine.appendSwitch("disable-gpu-vsync");
+}
+
 autoUpdater.logger = console;
 autoUpdater.autoDownload = true;
 autoUpdater.allowDowngrade = false;
@@ -150,7 +192,7 @@ function createWindow() {
     ? path.join(__dirname, "../assets/images/icon.ico")
     : path.join(process.resourcesPath, "assets", "images", "icon.ico");
 
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     icon: iconPath,
@@ -171,11 +213,11 @@ function createWindow() {
 
   mainWindow.on("page-title-updated", (event) => {
     event.preventDefault();
-    mainWindow.setTitle("Futhero Launcher");
+    mainWindow!.setTitle("Futhero Launcher");
   });
 
   mainWindow.webContents.on("did-finish-load", () => {
-    const currentUrl = mainWindow.webContents.getURL();
+    const currentUrl = mainWindow!.webContents.getURL();
     const gameType = detectGameType(currentUrl);
 
     console.log(`[Launcher] Página carregada: ${currentUrl}`);
@@ -194,7 +236,7 @@ function createWindow() {
       for (const scriptPath of scripts) {
         try {
           const scriptCode = fs.readFileSync(scriptPath, "utf8");
-          mainWindow.webContents.executeJavaScript(scriptCode);
+          mainWindow!.webContents.executeJavaScript(scriptCode);
 
           const relative = path.relative(
             path.join(__dirname, "scripts"),
@@ -271,7 +313,7 @@ app.whenReady().then(() => {
     }
   });
 
-  const mainWindow = createWindow();
+  createWindow();
 
   if (!isDev) {
     console.log("[AutoUpdater] App empacotado, verificando atualizações...");
@@ -297,7 +339,38 @@ app.whenReady().then(() => {
   ipcMain.on("switch-game", (event, type: GameType) => {
     console.log(`[Launcher] Trocando para: ${type}`);
     currentGameUrl = GameUrls[type];
-    mainWindow.loadURL(currentGameUrl);
+    mainWindow!.loadURL(currentGameUrl);
+  });
+
+  ipcMain.handle("toggleUnlimitedFPS", async () => {
+    unlimitedFPS = !unlimitedFPS;
+    
+    saveConfig({ unlimitedFPS });
+    console.log(`[FPS] Estado alterado e SALVO: ${unlimitedFPS ? 'DESBLOQUEADO' : 'BLOQUEADO'}`);
+    
+    const result = await dialog.showMessageBox({
+      type: "info",
+      title: "FPS Desbloqueado",
+      message: unlimitedFPS 
+        ? "FPS ilimitado ativado! O launcher precisa ser reiniciado para aplicar as mudanças."
+        : "FPS limitado reativado! O launcher precisa ser reiniciado para aplicar as mudanças.",
+      detail: "Deseja reiniciar agora?",
+      buttons: ["Reiniciar", "Depois"],
+      defaultId: 0,
+      cancelId: 1
+    });
+
+    if (result.response === 0) {
+      app.relaunch();
+      app.quit();
+    }
+
+    return unlimitedFPS;
+  });
+
+  ipcMain.handle("isUnlockedFps", () => {
+    console.log(`[FPS] Estado atual: ${unlimitedFPS ? 'DESBLOQUEADO' : 'BLOQUEADO'}`);
+    return unlimitedFPS;
   });
 
   ipcMain.handle("fullscreen-element", async (event, selector: string) => {
