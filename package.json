@@ -1,6 +1,6 @@
 {
   "name": "futhero-launcher",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "A secure bonk.io and haxball launcher with frontend manipulation capabilities.",
   "main": "dist/main.js",
   "scripts": {

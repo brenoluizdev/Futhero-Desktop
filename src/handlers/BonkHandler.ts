@@ -67,34 +67,43 @@ export class BonkHandler extends BaseGameHandler {
       return false;
     }
 
-    const newValue = !this.config.unlimitedFPS;
+    const oldUnlimited = this.config.unlimitedFPS;
+    const newValue = !oldUnlimited;
+
     this.updateConfig({ 
       unlimitedFPS: newValue,
-      fpsLimit: newValue ? null : this.config.fpsLimit
+      fpsLimit: newValue ? null : this.config.fpsLimit 
     });
     
     console.log(`[BONKIO FPS] Estado alterado: ${newValue ? 'DESBLOQUEADO' : 'BLOQUEADO'}`);
-    return newValue;
+
+    return oldUnlimited !== newValue;
   }
 
-  async setFpsLimit(limit: number | null): Promise<number | null> {
+  async setFpsLimit(limit: number | null): Promise<boolean> {
     if (!this.config.enableFPSControl) {
       console.log("[BONKIO] FPS control está desabilitado");
-      return null;
+      return false;
     }
 
     if (limit !== null && (typeof limit !== 'number' || limit < 0 || limit > 1000)) {
       console.error('[BONKIO FPS] Limite inválido:', limit);
-      return this.config.fpsLimit || null;
+      return false;
     }
+
+    const oldLimit = this.config.fpsLimit;
+    const oldUnlimited = this.config.unlimitedFPS;
+
+    const newUnlimitedState = limit !== null ? false : oldUnlimited;
 
     this.updateConfig({
       fpsLimit: limit,
-      unlimitedFPS: limit === null ? false : this.config.unlimitedFPS
+      unlimitedFPS: newUnlimitedState
     });
 
     console.log(`[BONKIO FPS] Limite definido: ${limit ?? 'nenhum'}`);
-    return limit;
+
+    return oldLimit !== limit || oldUnlimited !== newUnlimitedState;
   }
 
   getFpsLimit(): number | null {

@@ -272,27 +272,39 @@ app.whenReady().then(() => {
     app.quit();
   });
 
-  ipcMain.handle("toggleUnlimitedFPS", async () => {
+ ipcMain.handle("toggleUnlimitedFPS", async () => {
     const handler = gameManager.getHandler(GameType.BONKIO);
     if (!(handler instanceof BonkHandler)) return false;
-    const newState = await handler.toggleUnlimitedFPS();
-    dialog.showMessageBox({
-      type: "info", title: "FPS Desbloqueado",
-      message: newState ? "FPS ilimitado ativado! O launcher precisa ser reiniciado." : "FPS limitado reativado! O launcher precisa ser reiniciado.",
-      detail: "Deseja reiniciar agora?", buttons: ["Reiniciar", "Depois"], defaultId: 0, cancelId: 1
-    }).then(result => { if (result.response === 0) { app.relaunch(); app.quit(); } });
+
+    const needsRestart = await handler.toggleUnlimitedFPS();
+    const newState = handler.isUnlockedFps();
+
+    if (needsRestart) {
+      dialog.showMessageBox({
+        type: "info", title: "Mudança de FPS",
+        message: newState ? "FPS ilimitado ativado! O launcher precisa ser reiniciado." : "FPS limitado reativado! O launcher precisa ser reiniciado.",
+        detail: "Deseja reiniciar agora?", buttons: ["Reiniciar", "Depois"], defaultId: 0, cancelId: 1
+      }).then(result => { if (result.response === 0) { app.relaunch(); app.quit(); } });
+    }
+    
     return newState;
   });
 
   ipcMain.handle("setFpsLimit", async (event, limit: number | null) => {
     const handler = gameManager.getHandler(GameType.BONKIO);
     if (!(handler instanceof BonkHandler)) return null;
-    const newLimit = await handler.setFpsLimit(limit);
-    dialog.showMessageBox({
-      type: "info", title: "Limite de FPS Configurado",
-      message: limit ? `FPS limitado a ${limit}! O launcher precisa ser reiniciado.` : "Limite de FPS removido! O launcher precisa ser reiniciado.",
-      detail: "Deseja reiniciar agora?", buttons: ["Reiniciar", "Depois"], defaultId: 0, cancelId: 1
-    }).then(result => { if (result.response === 0) { app.relaunch(); app.quit(); } });
+
+    const needsRestart = await handler.setFpsLimit(limit);
+    const newLimit = handler.getFpsLimit();
+
+    if (needsRestart) {
+      dialog.showMessageBox({
+        type: "info", title: "Limite de FPS Configurado",
+        message: newLimit ? `FPS limitado a ${newLimit}! O launcher precisa ser reiniciado.` : "Limite de FPS removido! O launcher precisa ser reiniciado.",
+        detail: "Deseja reiniciar agora?", buttons: ["Reiniciar", "Depois"], defaultId: 0, cancelId: 1
+      }).then(result => { if (result.response === 0) { app.relaunch(); app.quit(); } });
+    }
+
     return newLimit;
   });
 
@@ -312,12 +324,65 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle("fullscreen-element", async (event, selector: string) => {
-    if (!selector || typeof selector !== 'string') return { success: false, error: 'invalid_selector' };
+    if (!selector || typeof selector !== 'string') {
+      console.error('[Fullscreen] Seletor inválido:', selector);
+      return { success: false, error: 'invalid_selector' };
+    }
+
     const win = BrowserWindow.fromWebContents(event.sender);
-    if (!win) return { success: false, error: "Window not found" };
+    if (!win) {
+      console.error('[Fullscreen] Window not found');
+      return { success: false, error: "Window not found" };
+    }
+
     try {
-      return await event.sender.executeJavaScript(`...`);
+      const result = await event.sender.executeJavaScript(`
+      (function() {
+        const iframe = document.getElementById('maingameframe');
+        if (!iframe || !iframe.contentWindow) {
+          console.error('[Fullscreen] Iframe não encontrado');
+          return { success: false, error: 'iframe_not_found' };
+        }
+
+        const iframeDoc = iframe.contentWindow.document;
+        const element = iframeDoc.querySelector('${selector}');
+        
+        if (!element) {
+          console.error('[Fullscreen] Elemento não encontrado:', '${selector}');
+          return { success: false, error: 'element_not_found' };
+        }
+
+        const bgReplay = iframeDoc.querySelector('#bgreplay');
+        if (bgReplay) {
+          bgReplay.style.textAlign = 'center';
+          bgReplay.style.display = 'flex';
+          bgReplay.style.alignItems = 'center';
+          bgReplay.style.justifyContent = 'center';
+          console.log('[Fullscreen] #bgreplay centralizado');
+        }
+
+        if (element.requestFullscreen) {
+          element.requestFullscreen();
+        } else if (element.webkitRequestFullscreen) {
+          element.webkitRequestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+          element.mozRequestFullScreen();
+        } else if (element.msRequestFullscreen) {
+          element.msRequestFullscreen();
+        } else {
+          console.error('[Fullscreen] API de fullscreen não suportada');
+          return { success: false, error: 'fullscreen_not_supported' };
+        }
+        
+        return { success: true };
+      })();
+    `);
+
+      console.log('[Fullscreen] Resultado:', result);
+      return result || { success: false, error: 'no_result' };
+
     } catch (error: any) {
+      console.error('[Fullscreen] Erro ao aplicar fullscreen:', error);
       return { success: false, error: error.message };
     }
   });
@@ -404,9 +469,40 @@ app.whenReady().then(() => {
 
   ipcMain.handle("exit-fullscreen", async (event) => {
     try {
-      await event.sender.executeJavaScript(`...`);
-      return { success: true };
+      const result = await event.sender.executeJavaScript(`
+      (function() {
+        const iframe = document.getElementById('maingameframe');
+        if (iframe && iframe.contentWindow) {
+          const iframeDoc = iframe.contentWindow.document;
+          const bgReplay = iframeDoc.querySelector('#bgreplay');
+          if (bgReplay) {
+            bgReplay.style.textAlign = '';
+            bgReplay.style.display = '';
+            bgReplay.style.alignItems = '';
+            bgReplay.style.justifyContent = '';
+            console.log('[Fullscreen] #bgreplay restaurado ao estilo original');
+          }
+        }
+
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+        
+        return { success: true };
+      })();
+    `);
+
+      console.log('[Fullscreen] Saiu do fullscreen');
+      return result || { success: true };
+
     } catch (error: any) {
+      console.error('[Fullscreen] Erro ao sair do fullscreen:', error);
       return { success: false, error: error.message };
     }
   });

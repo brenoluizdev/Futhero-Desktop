@@ -1,0 +1,6 @@
+{
+  "enableFPSControl": true,
+  "unlimitedFPS": false,
+  "fpsLimit": 120,
+  "customScriptsPath": "bonk"
+}
