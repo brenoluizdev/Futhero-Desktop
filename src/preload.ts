@@ -80,6 +80,16 @@ const futheroLauncherAPI = {
     ipcRenderer.send("switch-game", gameType);
   },
 
+  openJoinWindow: () => {
+    console.log("[API] openJoinWindow");
+    ipcRenderer.send("open-join-window");
+  },
+
+  joinRoom: (link: string) => {
+    console.log("[API] joinRoom:", link);
+    ipcRenderer.send("join-room", link);
+  },
+
   openExternal: (url: string) => {
     console.log("[API] openExternal:", url);
     ipcRenderer.send("open-external", url);

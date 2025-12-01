@@ -11,7 +11,6 @@ interface FutheroConfig {
 }
 
 const isDev = require("electron-is-dev");
-
 const configPath = path.join(app.getPath('userData'), 'futhero-config.json');
 
 function loadConfig(): FutheroConfig {
@@ -46,6 +45,7 @@ const config = loadConfig();
 let unlimitedFPS = config.unlimitedFPS;
 let fpsLimit = config.fpsLimit;
 let mainWindow: BrowserWindow | null = null;
+let joinWindow: BrowserWindow | null = null;
 
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 console.log('[FPS] Configuração atual:');
@@ -213,11 +213,11 @@ function getGameScripts(gameType: GameType | null): string[] {
 
 let currentGameUrl: string | null = null;
 
-function createWindow() {
-  const iconPath = isDev
-    ? path.join(__dirname, "../assets/images/icon.ico")
-    : path.join(process.resourcesPath, "assets", "images", "icon.ico");
+const iconPath = isDev
+  ? path.join(__dirname, "../assets/images/icon.ico")
+  : path.join(process.resourcesPath, "assets", "images", "icon.ico");
 
+function createWindow() {
   console.log('[Launcher] Criando janela principal...');
   console.log('[Launcher] Icon path:', iconPath);
 
@@ -414,7 +414,7 @@ app.whenReady().then(() => {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log(`[Launcher] 🎮 switch-game recebido`);
     console.log(`[Launcher] Tipo recebido: "${type}" (${typeof type})`);
-    
+
     if (!GameUrls[type as GameType]) {
       console.error(`[Launcher] ❌ Tipo de jogo inválido: "${type}"`);
       return;
@@ -572,6 +572,86 @@ app.whenReady().then(() => {
       console.error('[Fullscreen] Erro ao aplicar fullscreen:', error);
       return { success: false, error: error.message };
     }
+  });
+
+  ipcMain.on('open-join-window', () => {
+    if (joinWindow) {
+      joinWindow.focus();
+      return;
+    }
+
+    joinWindow = new BrowserWindow({
+      icon: fs.existsSync(iconPath) ? iconPath : undefined,
+      width: 500,
+      height: 200,
+      resizable: false,
+      autoHideMenuBar: true,
+      title: "Join Room",
+      webPreferences: {
+        preload: path.join(__dirname, "preload.js"),
+        nodeIntegration: false,
+        contextIsolation: true,
+        sandbox: false
+      }
+    });
+
+    let selectorPath: string;
+
+    if (isDev) {
+      selectorPath = path.join(__dirname, "pages/join-room.html");
+    } else {
+      selectorPath = path.join(__dirname, "pages", "join-room.html");
+    }
+
+    console.log('[JoinWindow] Carregando:', selectorPath);
+    console.log('[JoinWindow] Preload path:', path.join(__dirname, "preload.js"));
+
+    joinWindow.loadFile(selectorPath);
+
+    joinWindow.on('closed', () => {
+      joinWindow = null;
+    });
+  });
+
+  ipcMain.on('join-room', (event, link) => {
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('[JoinRoom] Evento "join-room" recebido!');
+    console.log('[JoinRoom] Link recebido:', link);
+    console.log('[JoinRoom] Tipo do link:', typeof link);
+
+    const allWindows = BrowserWindow.getAllWindows();
+    console.log('[JoinRoom] Total de janelas abertas:', allWindows.length);
+
+    allWindows.forEach((win, index) => {
+      console.log(`[JoinRoom] Janela ${index}:`, win.getTitle());
+    });
+
+    const targetWindow = allWindows.find(win => win !== joinWindow);
+
+    if (targetWindow) {
+      console.log('[JoinRoom] Janela principal encontrada:', targetWindow.getTitle());
+      console.log('[JoinRoom] URL atual:', targetWindow.webContents.getURL());
+      console.log('[JoinRoom] Carregando novo link:', link);
+
+      try {
+        targetWindow.loadURL(link);
+        console.log('[JoinRoom] ✅ loadURL executado com sucesso');
+
+        setTimeout(() => {
+          if (joinWindow && !joinWindow.isDestroyed()) {
+            console.log('[JoinRoom] Fechando janela de join...');
+            joinWindow.close();
+          }
+        }, 500);
+
+      } catch (error) {
+        console.error('[JoinRoom] ❌ Erro ao carregar URL:', error);
+      }
+    } else {
+      console.error('[JoinRoom] ❌ Janela principal não encontrada!');
+    }
+
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   });
 
   ipcMain.handle("exit-fullscreen", async (event) => {

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        #roomLink {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #006157;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        #joinButton {
+            padding: 10px 20px;
+            background-color: #00a896;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #joinButton:hover {
+            background-color: #006157;
+        }
+        #errorMsg {
+            color: red;
+            font-size: 12px;
+            min-height: 20px;
+            transition: opacity 0.3s;
+        }
+        .hidden {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Join a room</h2>
+        <div class="input-group">
+            <input 
+                type="text" 
+                id="roomLink" 
+                placeholder="https://bonk.io/1a2b3c4d5e"
+            />
+            <button id="joinButton">Join</button>
+        </div>
+        <div id="errorMsg" class="hidden"></div>
+    </div>
+
+    <script>
+        console.log('[JoinRoom] Script iniciado');
+        console.log('[JoinRoom] window.futheroLauncherAPI existe?', !!window.futheroLauncherAPI);
+        console.log('[JoinRoom] window.futheroLauncherAPI:', window.futheroLauncherAPI);
+
+        const input = document.getElementById('roomLink');
+        const button = document.getElementById('joinButton');
+        const errMsg = document.getElementById('errorMsg');
+        let msgId = 0;
+
+        button.addEventListener('click', joinRoom);
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') joinRoom();
+        });
+
+        function joinRoom() {
+            console.log('[JoinRoom] joinRoom() chamado');
+            const link = input.value.trim();
+            console.log('[JoinRoom] Link:', link);
+
+            if (!link) {
+                showError("Por favor, insira um link.");
+                return;
+            }
+
+            if (!link.startsWith("https://bonk.io/")) {
+                showError("Link inválido. Correto Ex: https://bonk.io/123456789");
+                return;
+            }
+
+            console.log('[JoinRoom] Verificando API...');
+            if (!window.futheroLauncherAPI) {
+                console.error('[JoinRoom] ❌ API não encontrada!');
+                showError("Erro: API não carregada. Reinicie o launcher.");
+                return;
+            }
+
+            console.log('[JoinRoom] Chamando window.futheroLauncherAPI.joinRoom');
+            try {
+                window.futheroLauncherAPI.joinRoom(link);
+                console.log('[JoinRoom] ✅ Comando enviado');
+            } catch (error) {
+                console.error('[JoinRoom] ❌ Erro ao chamar API:', error);
+                showError("Erro ao enviar comando.");
+            }
+        }
+
+        function showError(message) {
+            errMsg.textContent = message;
+            errMsg.classList.remove('hidden');
+            msgId++;
+            
+            setTimeout((id) => {
+                if (msgId == id) {
+                    errMsg.classList.add('hidden');
+                }
+            }, 2000, msgId);
+        }
+    </script>
+</body>
+</html>
