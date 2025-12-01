@@ -70,6 +70,11 @@ const futheroLauncherAPI = {
 
   toggleUnlimitedFPS: () => ipcRenderer.invoke("toggleUnlimitedFPS"),
   isUnlockedFps: () => ipcRenderer.invoke("isUnlockedFps"),
+  
+  // Novas funções para FPS limitado
+  setFpsLimit: (limit: number | null) => ipcRenderer.invoke("setFpsLimit", limit),
+  getFpsLimit: () => ipcRenderer.invoke("getFpsLimit"),
+  getFpsConfig: () => ipcRenderer.invoke("getFpsConfig"),
 
   switchGame: (gameType: string) => {
     console.log("[API] switchGame:", gameType);

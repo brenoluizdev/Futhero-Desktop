@@ -5,11 +5,16 @@ import { GameUrls, GameType } from "./types/games.types";
 import { autoUpdater } from "electron-updater";
 require("dotenv").config();
 
+interface FutheroConfig {
+  unlimitedFPS: boolean;
+  fpsLimit: number | null;
+}
+
 const isDev = require("electron-is-dev");
 
 const configPath = path.join(app.getPath('userData'), 'futhero-config.json');
 
-function loadConfig(): { unlimitedFPS: boolean } {
+function loadConfig(): FutheroConfig {
   try {
     if (fs.existsSync(configPath)) {
       const data = fs.readFileSync(configPath, 'utf8');
@@ -20,11 +25,12 @@ function loadConfig(): { unlimitedFPS: boolean } {
   } catch (error) {
     console.error('[Config] Erro ao carregar config:', error);
   }
-  console.log('[Config] Usando configuração padrão');
-  return { unlimitedFPS: false };
+  console.log('[Config] Usando configuração padrão: Nenhum limite (FPS nativo)');
+  return { unlimitedFPS: false, fpsLimit: null }; // Padrão: null = sem limitador
 }
 
-function saveConfig(config: { unlimitedFPS: boolean }) {
+// Substitua a função saveConfig
+function saveConfig(config: FutheroConfig) {
   try {
     const dir = path.dirname(configPath);
     if (!fs.existsSync(dir)) {
@@ -39,15 +45,29 @@ function saveConfig(config: { unlimitedFPS: boolean }) {
 
 const config = loadConfig();
 let unlimitedFPS = config.unlimitedFPS;
+let fpsLimit = config.fpsLimit;
 let mainWindow: BrowserWindow | null = null;
 
-console.log(`[FPS] Estado carregado: ${unlimitedFPS ? 'DESBLOQUEADO' : 'BLOQUEADO'}`);
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+console.log('[FPS] Configuração atual:');
+console.log(`[FPS]   unlimitedFPS: ${unlimitedFPS}`);
+console.log(`[FPS]   fpsLimit: ${fpsLimit}`);
+console.log(`[FPS] Estado: ${unlimitedFPS ? 'DESBLOQUEADO' : fpsLimit ? `LIMITADO A ${fpsLimit}` : 'PADRÃO (sem modificações)'}`);
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
+// Aplica flags apenas se configurado
 if (unlimitedFPS) {
   console.log("[FPS] Aplicando flags de FPS ilimitado...");
   app.commandLine.appendSwitch("disable-frame-rate-limit");
   app.commandLine.appendSwitch("disable-gpu-vsync");
+} else if (fpsLimit && fpsLimit > 0) {
+  console.log(`[FPS] Limite de ${fpsLimit} FPS será aplicado via JavaScript`);
+  app.commandLine.appendSwitch("disable-frame-rate-limit");
+  app.commandLine.appendSwitch("disable-gpu-vsync");
+} else {
+  console.log("[FPS] Modo padrão: usando configurações nativas do Electron");
 }
+
 
 autoUpdater.logger = console;
 autoUpdater.autoDownload = true;
@@ -343,35 +363,73 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle("toggleUnlimitedFPS", async () => {
-    unlimitedFPS = !unlimitedFPS;
-    
-    saveConfig({ unlimitedFPS });
-    console.log(`[FPS] Estado alterado e SALVO: ${unlimitedFPS ? 'DESBLOQUEADO' : 'BLOQUEADO'}`);
-    
-    const result = await dialog.showMessageBox({
-      type: "info",
-      title: "FPS Desbloqueado",
-      message: unlimitedFPS 
-        ? "FPS ilimitado ativado! O launcher precisa ser reiniciado para aplicar as mudanças."
-        : "FPS limitado reativado! O launcher precisa ser reiniciado para aplicar as mudanças.",
-      detail: "Deseja reiniciar agora?",
-      buttons: ["Reiniciar", "Depois"],
-      defaultId: 0,
-      cancelId: 1
-    });
-
-    if (result.response === 0) {
-      app.relaunch();
-      app.quit();
-    }
-
-    return unlimitedFPS;
+  unlimitedFPS = !unlimitedFPS;
+  if (unlimitedFPS) {
+    fpsLimit = null; // Desativa o limite quando ativa ilimitado
+  }
+  
+  saveConfig({ unlimitedFPS, fpsLimit });
+  console.log(`[FPS] Estado alterado e SALVO: ${unlimitedFPS ? 'DESBLOQUEADO' : 'BLOQUEADO'}`);
+  
+  const result = await dialog.showMessageBox({
+    type: "info",
+    title: "FPS Desbloqueado",
+    message: unlimitedFPS 
+      ? "FPS ilimitado ativado! O launcher precisa ser reiniciado para aplicar as mudanças."
+      : "FPS limitado reativado! O launcher precisa ser reiniciado para aplicar as mudanças.",
+    detail: "Deseja reiniciar agora?",
+    buttons: ["Reiniciar", "Depois"],
+    defaultId: 0,
+    cancelId: 1
   });
 
-  ipcMain.handle("isUnlockedFps", () => {
-    console.log(`[FPS] Estado atual: ${unlimitedFPS ? 'DESBLOQUEADO' : 'BLOQUEADO'}`);
-    return unlimitedFPS;
+  if (result.response === 0) {
+    app.relaunch();
+    app.quit();
+  }
+
+  return unlimitedFPS;
+});
+
+ipcMain.handle("setFpsLimit", async (event, limit: number | null) => {
+  console.log(`[FPS] Definindo limite para: ${limit ?? 'ilimitado'}`);
+  
+  fpsLimit = limit;
+  if (limit !== null) {
+    unlimitedFPS = false; // Desativa modo ilimitado quando define um limite
+  }
+  
+  saveConfig({ unlimitedFPS, fpsLimit });
+  
+  const result = await dialog.showMessageBox({
+    type: "info",
+    title: "Limite de FPS Configurado",
+    message: limit 
+      ? `FPS limitado a ${limit}! O launcher precisa ser reiniciado para aplicar as mudanças.`
+      : "Limite de FPS removido! O launcher precisa ser reiniciado.",
+    detail: "Deseja reiniciar agora?",
+    buttons: ["Reiniciar", "Depois"],
+    defaultId: 0,
+    cancelId: 1
   });
+
+  if (result.response === 0) {
+    app.relaunch();
+    app.quit();
+  }
+
+  return fpsLimit;
+});
+
+ipcMain.handle("getFpsLimit", () => {
+  console.log(`[FPS] Limite atual: ${fpsLimit ?? 'nenhum'}`);
+  return fpsLimit;
+});
+
+ipcMain.handle("isUnlockedFps", () => {
+  console.log(`[FPS] Estado atual: ${unlimitedFPS ? 'DESBLOQUEADO' : 'BLOQUEADO'}`);
+  return unlimitedFPS;
+});
 
   ipcMain.handle("fullscreen-element", async (event, selector: string) => {
     const win = BrowserWindow.fromWebContents(event.sender);

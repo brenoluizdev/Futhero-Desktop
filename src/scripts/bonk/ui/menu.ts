@@ -316,12 +316,17 @@
         return mainContainer;
     }
 
+    // Adicione esta função no createPerformanceSection()
+
+    // Adicione esta função no createPerformanceSection()
+
     function createPerformanceSection() {
         const section = createSection('⚡', 'PERFORMANCE', 'Optimize your game performance');
 
+        // Toggle FPS Ilimitado
         const unlockFPSContainer = createToggleOption(
             '🚀 Unlock FPS',
-            'Remove FPS limitations for smoother gameplay',
+            'Remove all FPS limitations',
             async () => {
                 const futheroLauncherAPI = (window as any).futheroLauncherAPI;
                 if (futheroLauncherAPI) {
@@ -337,6 +342,11 @@
         );
         section.appendChild(unlockFPSContainer);
 
+        // Seletor de FPS Limitado
+        const fpsLimitContainer = createFpsLimitSelector();
+        section.appendChild(fpsLimitContainer);
+
+        // Show FPS Counter
         const showFPSContainer = createToggleOption(
             '📊 Show FPS Counter',
             'Display real-time FPS on screen',
@@ -358,18 +368,19 @@
 
         const infoBox = document.createElement('div');
         infoBox.innerHTML = `
-            <div style="display: flex; align-items: start; gap: 10px;">
-                <div style="font-size: 20px;">ℹ️</div>
-                <div>
-                    <div style="color: #fff; font-weight: bold; margin-bottom: 5px;">Performance Tips</div>
-                    <div style="color: #888; font-size: 12px; line-height: 1.5;">
-                        • Unlock FPS for maximum smoothness<br>
-                        • Monitor FPS to check performance<br>
-                        • Close other apps for better results
-                    </div>
+        <div style="display: flex; align-items: start; gap: 10px;">
+            <div style="font-size: 20px;">ℹ️</div>
+            <div>
+                <div style="color: #fff; font-weight: bold; margin-bottom: 5px;">Performance Tips</div>
+                <div style="color: #888; font-size: 12px; line-height: 1.5;">
+                    • Unlock FPS for maximum smoothness<br>
+                    • Set custom FPS limit to balance performance<br>
+                    • Monitor FPS to check performance<br>
+                    • Close other apps for better results
                 </div>
             </div>
-        `;
+        </div>
+    `;
         Object.assign(infoBox.style, {
             marginTop: '20px',
             padding: '15px',
@@ -381,6 +392,270 @@
         section.appendChild(infoBox);
 
         return section;
+    }
+
+    // Adicione esta nova função
+    function createFpsLimitSelector() {
+        const container = document.createElement('div');
+
+        Object.assign(container.style, {
+            padding: '20px',
+            background: 'rgba(255, 103, 0, 0.05)',
+            borderRadius: '10px',
+            border: '1px solid rgba(255, 103, 0, 0.1)',
+            marginBottom: '15px',
+            transition: 'all 0.3s ease'
+        });
+
+        container.addEventListener('mouseenter', () => {
+            container.style.background = 'rgba(255, 103, 0, 0.08)';
+            container.style.borderColor = 'rgba(255, 103, 0, 0.2)';
+        });
+
+        container.addEventListener('mouseleave', () => {
+            container.style.background = 'rgba(255, 103, 0, 0.05)';
+            container.style.borderColor = 'rgba(255, 103, 0, 0.1)';
+        });
+
+        const header = document.createElement('div');
+        header.innerHTML = `
+        <div style="color: #fff; font-weight: bold; margin-bottom: 4px;">🎯 Custom FPS Limit</div>
+        <div style="color: #888; font-size: 12px; margin-bottom: 15px;">Set a specific FPS cap (Default: Native - No limiter)</div>
+    `;
+        container.appendChild(header);
+
+        // Botão Reset to Default
+        const resetBtn = document.createElement('button');
+        resetBtn.innerHTML = '🔄 Reset to Default (Native)';
+        Object.assign(resetBtn.style, {
+            width: '100%',
+            padding: '12px',
+            background: 'rgba(59, 130, 246, 0.15)',
+            border: '2px solid rgba(59, 130, 246, 0.3)',
+            borderRadius: '8px',
+            color: '#60a5fa',
+            fontSize: '14px',
+            fontFamily: 'futurept_b1',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            fontWeight: 'bold',
+            marginBottom: '15px'
+        });
+
+        resetBtn.addEventListener('mouseenter', () => {
+            resetBtn.style.background = 'rgba(59, 130, 246, 0.25)';
+            resetBtn.style.transform = 'translateY(-2px)';
+            resetBtn.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+        });
+
+        resetBtn.addEventListener('mouseleave', () => {
+            resetBtn.style.background = 'rgba(59, 130, 246, 0.15)';
+            resetBtn.style.transform = 'translateY(0)';
+            resetBtn.style.boxShadow = 'none';
+        });
+
+        resetBtn.addEventListener('click', async () => {
+            const futheroLauncherAPI = (window as any).futheroLauncherAPI;
+            if (futheroLauncherAPI) {
+                // Primeiro verifica se FPS está desbloqueado
+                const isUnlocked = await futheroLauncherAPI.isUnlockedFps();
+
+                // Se estiver desbloqueado, desativa
+                if (isUnlocked) {
+                    await futheroLauncherAPI.toggleUnlimitedFPS();
+                }
+
+                // Depois reseta o limite para null (padrão)
+                await futheroLauncherAPI.setFpsLimit(null);
+                updateCurrentFpsDisplay(null);
+            }
+        });
+
+        container.appendChild(resetBtn);
+
+        // Presets de FPS
+        const presetsContainer = document.createElement('div');
+        Object.assign(presetsContainer.style, {
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '10px',
+            marginBottom: '15px'
+        });
+
+        const presets = [60, 120, 144, 240, 360, 480, 600, null]; // null = unlimited
+        const presetLabels: { [key: string]: string } = {
+            '60': '60',
+            '120': '120',
+            '144': '144',
+            '240': '240',
+            '360': '360',
+            '480': '480',
+            '600': '600',
+            'null': '∞'
+        };
+
+        presets.forEach(fps => {
+            const btn = document.createElement('button');
+            btn.textContent = presetLabels[String(fps)] + ' FPS';
+
+            Object.assign(btn.style, {
+                padding: '10px',
+                background: 'rgba(255, 103, 0, 0.1)',
+                border: '1px solid rgba(255, 103, 0, 0.2)',
+                borderRadius: '8px',
+                color: '#fff',
+                fontSize: '13px',
+                fontFamily: 'futurept_b1',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                fontWeight: 'bold'
+            });
+
+            btn.addEventListener('mouseenter', () => {
+                btn.style.background = 'rgba(255, 103, 0, 0.2)';
+                btn.style.transform = 'translateY(-2px)';
+            });
+
+            btn.addEventListener('mouseleave', () => {
+                btn.style.background = 'rgba(255, 103, 0, 0.1)';
+                btn.style.transform = 'translateY(0)';
+            });
+
+            btn.addEventListener('click', async () => {
+                const futheroLauncherAPI = (window as any).futheroLauncherAPI;
+                if (futheroLauncherAPI) {
+                    await futheroLauncherAPI.setFpsLimit(fps);
+                    updateCurrentFpsDisplay(fps);
+                }
+            });
+
+            presetsContainer.appendChild(btn);
+        });
+
+        container.appendChild(presetsContainer);
+
+        // Input customizado
+        const customInputContainer = document.createElement('div');
+        Object.assign(customInputContainer.style, {
+            display: 'flex',
+            gap: '10px',
+            alignItems: 'center'
+        });
+
+        const customInput = document.createElement('input');
+        customInput.type = 'number';
+        customInput.placeholder = 'Custom FPS...';
+        customInput.min = '30';
+        customInput.max = '1000';
+
+        Object.assign(customInput.style, {
+            flex: '1',
+            padding: '10px',
+            background: 'rgba(0, 0, 0, 0.3)',
+            border: '1px solid rgba(255, 103, 0, 0.2)',
+            borderRadius: '8px',
+            color: '#fff',
+            fontSize: '14px',
+            fontFamily: 'futurept_b1',
+            outline: 'none'
+        });
+
+        customInput.addEventListener('focus', () => {
+            customInput.style.borderColor = 'rgba(255, 103, 0, 0.5)';
+        });
+
+        customInput.addEventListener('blur', () => {
+            customInput.style.borderColor = 'rgba(255, 103, 0, 0.2)';
+        });
+
+        const applyBtn = document.createElement('button');
+        applyBtn.textContent = 'Apply';
+
+        Object.assign(applyBtn.style, {
+            padding: '10px 20px',
+            background: 'linear-gradient(135deg, rgba(255, 103, 0, 0.2) 0%, rgba(255, 103, 0, 0.1) 100%)',
+            border: '1px solid rgba(255, 103, 0, 0.3)',
+            borderRadius: '8px',
+            color: '#fff',
+            fontSize: '14px',
+            fontFamily: 'futurept_b1',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            fontWeight: 'bold'
+        });
+
+        applyBtn.addEventListener('mouseenter', () => {
+            applyBtn.style.background = 'linear-gradient(135deg, rgba(255, 103, 0, 0.3) 0%, rgba(255, 103, 0, 0.2) 100%)';
+            applyBtn.style.transform = 'scale(1.05)';
+        });
+
+        applyBtn.addEventListener('mouseleave', () => {
+            applyBtn.style.background = 'linear-gradient(135deg, rgba(255, 103, 0, 0.2) 0%, rgba(255, 103, 0, 0.1) 100%)';
+            applyBtn.style.transform = 'scale(1)';
+        });
+
+        applyBtn.addEventListener('click', async () => {
+            const value = parseInt(customInput.value);
+            if (value && value >= 30 && value <= 1000) {
+                const futheroLauncherAPI = (window as any).futheroLauncherAPI;
+                if (futheroLauncherAPI) {
+                    await futheroLauncherAPI.setFpsLimit(value);
+                    updateCurrentFpsDisplay(value);
+                    customInput.value = '';
+                }
+            }
+        });
+
+        customInputContainer.appendChild(customInput);
+        customInputContainer.appendChild(applyBtn);
+        container.appendChild(customInputContainer);
+
+        // Display do limite atual
+        const currentLimitDisplay = document.createElement('div');
+        currentLimitDisplay.id = 'current-fps-limit-display';
+        Object.assign(currentLimitDisplay.style, {
+            marginTop: '15px',
+            padding: '10px',
+            background: 'rgba(0, 0, 0, 0.3)',
+            borderRadius: '8px',
+            textAlign: 'center',
+            color: '#ff6700',
+            fontSize: '14px',
+            fontWeight: 'bold'
+        });
+
+        // Carrega e exibe o limite atual
+        (async () => {
+            const futheroLauncherAPI = (window as any).futheroLauncherAPI;
+            if (futheroLauncherAPI) {
+                const config = await futheroLauncherAPI.getFpsConfig();
+                console.log('[FPS Config]', config);
+
+                if (config.isDefault) {
+                    updateCurrentFpsDisplay(null);
+                } else {
+                    const currentLimit = await futheroLauncherAPI.getFpsLimit();
+                    updateCurrentFpsDisplay(currentLimit);
+                }
+            }
+        })();
+
+        container.appendChild(currentLimitDisplay);
+
+        return container;
+    }
+
+    function updateCurrentFpsDisplay(limit: number | null) {
+        const display = document.getElementById('current-fps-limit-display');
+        if (display) {
+            if (limit === null) {
+                display.textContent = 'Current: Default (Native - No limiter)';
+                display.style.color = '#60a5fa';
+            } else {
+                display.textContent = `Current Limit: ${limit} FPS`;
+                display.style.color = '#ff6700';
+            }
+        }
     }
 
     function createToggleOption(
