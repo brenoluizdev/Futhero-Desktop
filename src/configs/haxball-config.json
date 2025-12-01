@@ -1,0 +1,7 @@
+{
+  "enableFPSControl": false,
+  "customScriptsPath": "haxball",
+  "webPreferences": {
+    "webSecurity": false
+  }
+}
