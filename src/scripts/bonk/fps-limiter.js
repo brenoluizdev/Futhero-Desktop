@@ -7,23 +7,19 @@
         return;
     }
 
-    // CRÍTICO: Verifica se há limite configurado ANTES de fazer qualquer coisa
     const fpsLimit = await futheroAPI.getFpsLimit();
     const isUnlocked = await futheroAPI.isUnlockedFps();
     
-    // Se não tem limite E não está em modo ilimitado, NÃO FAZ NADA
     if (!fpsLimit && !isUnlocked) {
         console.log("[FPS Limiter] ✅ Modo padrão (nativo) - Nenhuma modificação será aplicada");
         return;
     }
 
-    // Se está em modo ilimitado, também não aplica limitador
     if (isUnlocked) {
         console.log("[FPS Limiter] ✅ Modo FPS ilimitado ativo - Nenhum limitador será aplicado");
         return;
     }
 
-    // Só chega aqui se realmente tem um limite configurado
     if (window.__futheroFpsLimiterActive) {
         console.log("[FPS Limiter] Já existe uma instância ativa, abortando");
         return;
@@ -59,7 +55,6 @@
 
     createLimiter(window, "window");
 
-    // Injeta no iframe
     function injectIframe() {
         const iframe = document.getElementById('maingameframe');
         if (!iframe?.contentWindow) {

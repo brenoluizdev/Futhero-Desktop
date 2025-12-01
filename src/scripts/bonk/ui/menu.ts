@@ -316,14 +316,9 @@
         return mainContainer;
     }
 
-    // Adicione esta função no createPerformanceSection()
-
-    // Adicione esta função no createPerformanceSection()
-
     function createPerformanceSection() {
         const section = createSection('⚡', 'PERFORMANCE', 'Optimize your game performance');
 
-        // Toggle FPS Ilimitado
         const unlockFPSContainer = createToggleOption(
             '🚀 Unlock FPS',
             'Remove all FPS limitations',
@@ -342,11 +337,9 @@
         );
         section.appendChild(unlockFPSContainer);
 
-        // Seletor de FPS Limitado
         const fpsLimitContainer = createFpsLimitSelector();
         section.appendChild(fpsLimitContainer);
 
-        // Show FPS Counter
         const showFPSContainer = createToggleOption(
             '📊 Show FPS Counter',
             'Display real-time FPS on screen',
@@ -393,8 +386,7 @@
 
         return section;
     }
-
-    // Adicione esta nova função
+    
     function createFpsLimitSelector() {
         const container = document.createElement('div');
 
@@ -424,7 +416,6 @@
     `;
         container.appendChild(header);
 
-        // Botão Reset to Default
         const resetBtn = document.createElement('button');
         resetBtn.innerHTML = '🔄 Reset to Default (Native)';
         Object.assign(resetBtn.style, {
@@ -457,15 +448,12 @@
         resetBtn.addEventListener('click', async () => {
             const futheroLauncherAPI = (window as any).futheroLauncherAPI;
             if (futheroLauncherAPI) {
-                // Primeiro verifica se FPS está desbloqueado
                 const isUnlocked = await futheroLauncherAPI.isUnlockedFps();
 
-                // Se estiver desbloqueado, desativa
                 if (isUnlocked) {
                     await futheroLauncherAPI.toggleUnlimitedFPS();
                 }
 
-                // Depois reseta o limite para null (padrão)
                 await futheroLauncherAPI.setFpsLimit(null);
                 updateCurrentFpsDisplay(null);
             }
@@ -473,7 +461,6 @@
 
         container.appendChild(resetBtn);
 
-        // Presets de FPS
         const presetsContainer = document.createElement('div');
         Object.assign(presetsContainer.style, {
             display: 'grid',
@@ -482,7 +469,7 @@
             marginBottom: '15px'
         });
 
-        const presets = [60, 120, 144, 240, 360, 480, 600, null]; // null = unlimited
+        const presets = [60, 120, 144, 240, 360, 480, 600, null];
         const presetLabels: { [key: string]: string } = {
             '60': '60',
             '120': '120',
@@ -534,7 +521,6 @@
 
         container.appendChild(presetsContainer);
 
-        // Input customizado
         const customInputContainer = document.createElement('div');
         Object.assign(customInputContainer.style, {
             display: 'flex',
@@ -610,7 +596,6 @@
         customInputContainer.appendChild(applyBtn);
         container.appendChild(customInputContainer);
 
-        // Display do limite atual
         const currentLimitDisplay = document.createElement('div');
         currentLimitDisplay.id = 'current-fps-limit-display';
         Object.assign(currentLimitDisplay.style, {
@@ -624,7 +609,6 @@
             fontWeight: 'bold'
         });
 
-        // Carrega e exibe o limite atual
         (async () => {
             const futheroLauncherAPI = (window as any).futheroLauncherAPI;
             if (futheroLauncherAPI) {

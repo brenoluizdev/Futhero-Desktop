@@ -26,10 +26,9 @@ function loadConfig(): FutheroConfig {
     console.error('[Config] Erro ao carregar config:', error);
   }
   console.log('[Config] Usando configuração padrão: Nenhum limite (FPS nativo)');
-  return { unlimitedFPS: false, fpsLimit: null }; // Padrão: null = sem limitador
+  return { unlimitedFPS: false, fpsLimit: null };
 }
 
-// Substitua a função saveConfig
 function saveConfig(config: FutheroConfig) {
   try {
     const dir = path.dirname(configPath);
@@ -55,7 +54,6 @@ console.log(`[FPS]   fpsLimit: ${fpsLimit}`);
 console.log(`[FPS] Estado: ${unlimitedFPS ? 'DESBLOQUEADO' : fpsLimit ? `LIMITADO A ${fpsLimit}` : 'PADRÃO (sem modificações)'}`);
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-// Aplica flags apenas se configurado
 if (unlimitedFPS) {
   console.log("[FPS] Aplicando flags de FPS ilimitado...");
   app.commandLine.appendSwitch("disable-frame-rate-limit");
@@ -365,7 +363,7 @@ app.whenReady().then(() => {
   ipcMain.handle("toggleUnlimitedFPS", async () => {
   unlimitedFPS = !unlimitedFPS;
   if (unlimitedFPS) {
-    fpsLimit = null; // Desativa o limite quando ativa ilimitado
+    fpsLimit = null;
   }
   
   saveConfig({ unlimitedFPS, fpsLimit });
@@ -396,7 +394,7 @@ ipcMain.handle("setFpsLimit", async (event, limit: number | null) => {
   
   fpsLimit = limit;
   if (limit !== null) {
-    unlimitedFPS = false; // Desativa modo ilimitado quando define um limite
+    unlimitedFPS = false;
   }
   
   saveConfig({ unlimitedFPS, fpsLimit });
