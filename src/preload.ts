@@ -80,6 +80,11 @@ const futheroLauncherAPI = {
     ipcRenderer.send("switch-game", gameType);
   },
 
+  openExternal: (url: string) => {
+    console.log("[API] openExternal:", url);
+    ipcRenderer.send("open-external", url);
+  },
+
   fullscreenElement: async (selector: string) => {
     console.log("[API] fullscreenElement:", selector);
     return ipcRenderer.invoke("fullscreen-element", selector);

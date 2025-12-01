@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, protocol, ipcMain, dialog } from "electron";
+import { app, BrowserWindow, Menu, protocol, ipcMain, dialog, shell } from "electron";
 import * as path from "path";
 import * as fs from "fs";
 import { GameUrls, GameType } from "./types/games.types";
@@ -52,6 +52,14 @@ console.log('[FPS] Configuração atual:');
 console.log(`[FPS]   unlimitedFPS: ${unlimitedFPS}`);
 console.log(`[FPS]   fpsLimit: ${fpsLimit}`);
 console.log(`[FPS] Estado: ${unlimitedFPS ? 'DESBLOQUEADO' : fpsLimit ? `LIMITADO A ${fpsLimit}` : 'PADRÃO (sem modificações)'}`);
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+console.log('[GameUrls] Verificando importação:');
+console.log('[GameUrls] GameType:', GameType);
+console.log('[GameUrls] GameUrls:', GameUrls);
+console.log('[GameUrls] BONKIO:', GameUrls[GameType.BONKIO]);
+console.log('[GameUrls] HAXBALL:', GameUrls[GameType.HAXBALL]);
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
 if (unlimitedFPS) {
@@ -203,17 +211,20 @@ function getGameScripts(gameType: GameType | null): string[] {
   return allScripts;
 }
 
-let currentGameUrl = GameUrls[GameType.BONKIO];
+let currentGameUrl: string | null = null;
 
 function createWindow() {
   const iconPath = isDev
     ? path.join(__dirname, "../assets/images/icon.ico")
     : path.join(process.resourcesPath, "assets", "images", "icon.ico");
 
+  console.log('[Launcher] Criando janela principal...');
+  console.log('[Launcher] Icon path:', iconPath);
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    icon: iconPath,
+    icon: fs.existsSync(iconPath) ? iconPath : undefined,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       nodeIntegration: false,
@@ -225,7 +236,45 @@ function createWindow() {
     },
   });
 
-  mainWindow.loadURL(currentGameUrl);
+  let selectorPath: string;
+
+  if (isDev) {
+    selectorPath = path.join(__dirname, "pages/game-selector.html");
+  } else {
+    selectorPath = path.join(__dirname, "pages", "game-selector.html");
+  }
+
+  console.log(`[Launcher] Carregando seletor de jogos de: ${selectorPath}`);
+  console.log(`[Launcher] Arquivo existe? ${fs.existsSync(selectorPath)}`);
+
+  if (!fs.existsSync(selectorPath)) {
+    console.error(`[Launcher] ❌ Arquivo não encontrado: ${selectorPath}`);
+    console.log('[Launcher] __dirname:', __dirname);
+    console.log('[Launcher] isDev:', isDev);
+
+    const alternatives = [
+      path.join(process.resourcesPath, "pages", "game-selector.html"),
+      path.join(process.resourcesPath, "game-selector.html"),
+      path.join(__dirname, "../pages/game-selector.html"),
+      path.join(__dirname, "../game-selector.html"),
+    ];
+
+    for (const alt of alternatives) {
+      console.log(`[Launcher] Tentando: ${alt}`);
+      if (fs.existsSync(alt)) {
+        console.log(`[Launcher] ✅ Encontrado em: ${alt}`);
+        selectorPath = alt;
+        break;
+      }
+    }
+  }
+
+  try {
+    mainWindow.loadFile(selectorPath);
+    console.log('[Launcher] ✅ Arquivo carregado com sucesso');
+  } catch (error) {
+    console.error('[Launcher] ❌ Erro ao carregar arquivo:', error);
+  }
 
   if (app.isPackaged) Menu.setApplicationMenu(null);
 
@@ -236,6 +285,12 @@ function createWindow() {
 
   mainWindow.webContents.on("did-finish-load", () => {
     const currentUrl = mainWindow!.webContents.getURL();
+
+    if (currentUrl.includes("game-selector.html")) {
+      console.log("[Launcher] Tela de seleção carregada");
+      return;
+    }
+
     const gameType = detectGameType(currentUrl);
 
     console.log(`[Launcher] Página carregada: ${currentUrl}`);
@@ -305,6 +360,28 @@ function getMime(filePath: string): string {
   return mimeTypes[ext] || "application/octet-stream";
 }
 
+function openExternal(url: string) {
+  if (!url || typeof url !== 'string') {
+    console.error('[OpenExternal] URL inválida:', url);
+    return false;
+  }
+
+  try {
+    const parsedUrl = new URL(url);
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      console.error('[OpenExternal] Protocolo não permitido:', parsedUrl.protocol);
+      return false;
+    }
+
+    console.log('[OpenExternal] Abrindo URL:', url);
+    shell.openExternal(url);
+    return true;
+  } catch (error) {
+    console.error('[OpenExternal] Erro ao abrir URL:', error);
+    return false;
+  }
+}
+
 app.whenReady().then(() => {
   const isDev = !app.isPackaged;
 
@@ -333,105 +410,117 @@ app.whenReady().then(() => {
 
   createWindow();
 
-  if (!isDev) {
-    console.log("[AutoUpdater] App empacotado, verificando atualizações...");
+  ipcMain.on("switch-game", (event, type: string) => {
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(`[Launcher] 🎮 switch-game recebido`);
+    console.log(`[Launcher] Tipo recebido: "${type}" (${typeof type})`);
+    
+    if (!GameUrls[type as GameType]) {
+      console.error(`[Launcher] ❌ Tipo de jogo inválido: "${type}"`);
+      return;
+    }
 
-    setTimeout(() => {
-      autoUpdater.checkForUpdates()
-        .then((result) => {
-          console.log("[AutoUpdater] Verificação iniciada:", result);
-        })
-        .catch((error) => {
-          console.error("[AutoUpdater] Erro ao iniciar verificação:", error);
-        });
-    }, 3000);
+    currentGameUrl = GameUrls[type as GameType];
+    console.log(`[Launcher] ✅ URL encontrada: ${currentGameUrl}`);
 
-    setInterval(() => {
-      console.log("[AutoUpdater] Verificação periódica...");
-      autoUpdater.checkForUpdates();
-    }, 10 * 60 * 1000);
-  } else {
-    console.log("[AutoUpdater] Modo DEV, atualizações desabilitadas");
-  }
-
-  ipcMain.on("switch-game", (event, type: GameType) => {
-    console.log(`[Launcher] Trocando para: ${type}`);
-    currentGameUrl = GameUrls[type];
-    mainWindow!.loadURL(currentGameUrl);
+    if (mainWindow && currentGameUrl) {
+      console.log(`[Launcher] 🚀 Carregando jogo...`);
+      mainWindow.loadURL(currentGameUrl);
+      console.log(`[Launcher] ✅ Comando loadURL executado`);
+    }
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   });
 
   ipcMain.handle("toggleUnlimitedFPS", async () => {
-  unlimitedFPS = !unlimitedFPS;
-  if (unlimitedFPS) {
-    fpsLimit = null;
-  }
-  
-  saveConfig({ unlimitedFPS, fpsLimit });
-  console.log(`[FPS] Estado alterado e SALVO: ${unlimitedFPS ? 'DESBLOQUEADO' : 'BLOQUEADO'}`);
-  
-  const result = await dialog.showMessageBox({
-    type: "info",
-    title: "FPS Desbloqueado",
-    message: unlimitedFPS 
-      ? "FPS ilimitado ativado! O launcher precisa ser reiniciado para aplicar as mudanças."
-      : "FPS limitado reativado! O launcher precisa ser reiniciado para aplicar as mudanças.",
-    detail: "Deseja reiniciar agora?",
-    buttons: ["Reiniciar", "Depois"],
-    defaultId: 0,
-    cancelId: 1
+    unlimitedFPS = !unlimitedFPS;
+    if (unlimitedFPS) {
+      fpsLimit = null;
+    }
+
+    saveConfig({ unlimitedFPS, fpsLimit });
+    console.log(`[FPS] Estado alterado e SALVO: ${unlimitedFPS ? 'DESBLOQUEADO' : 'BLOQUEADO'}`);
+
+    const result = await dialog.showMessageBox({
+      type: "info",
+      title: "FPS Desbloqueado",
+      message: unlimitedFPS
+        ? "FPS ilimitado ativado! O launcher precisa ser reiniciado para aplicar as mudanças."
+        : "FPS limitado reativado! O launcher precisa ser reiniciado para aplicar as mudanças.",
+      detail: "Deseja reiniciar agora?",
+      buttons: ["Reiniciar", "Depois"],
+      defaultId: 0,
+      cancelId: 1
+    });
+
+    if (result.response === 0) {
+      app.relaunch();
+      app.quit();
+    }
+
+    return unlimitedFPS;
   });
 
-  if (result.response === 0) {
-    app.relaunch();
-    app.quit();
-  }
+  ipcMain.handle("setFpsLimit", async (event, limit: number | null) => {
+    console.log(`[FPS] Definindo limite para: ${limit ?? 'ilimitado'}`);
 
-  return unlimitedFPS;
-});
+    if (limit !== null && (typeof limit !== 'number' || limit < 0 || limit > 1000)) {
+      console.error('[FPS] Limite inválido:', limit);
+      return fpsLimit;
+    }
 
-ipcMain.handle("setFpsLimit", async (event, limit: number | null) => {
-  console.log(`[FPS] Definindo limite para: ${limit ?? 'ilimitado'}`);
-  
-  fpsLimit = limit;
-  if (limit !== null) {
-    unlimitedFPS = false;
-  }
-  
-  saveConfig({ unlimitedFPS, fpsLimit });
-  
-  const result = await dialog.showMessageBox({
-    type: "info",
-    title: "Limite de FPS Configurado",
-    message: limit 
-      ? `FPS limitado a ${limit}! O launcher precisa ser reiniciado para aplicar as mudanças.`
-      : "Limite de FPS removido! O launcher precisa ser reiniciado.",
-    detail: "Deseja reiniciar agora?",
-    buttons: ["Reiniciar", "Depois"],
-    defaultId: 0,
-    cancelId: 1
+    fpsLimit = limit;
+    if (limit !== null) {
+      unlimitedFPS = false;
+    }
+
+    saveConfig({ unlimitedFPS, fpsLimit });
+
+    const result = await dialog.showMessageBox({
+      type: "info",
+      title: "Limite de FPS Configurado",
+      message: limit
+        ? `FPS limitado a ${limit}! O launcher precisa ser reiniciado para aplicar as mudanças.`
+        : "Limite de FPS removido! O launcher precisa ser reiniciado.",
+      detail: "Deseja reiniciar agora?",
+      buttons: ["Reiniciar", "Depois"],
+      defaultId: 0,
+      cancelId: 1
+    });
+
+    if (result.response === 0) {
+      app.relaunch();
+      app.quit();
+    }
+
+    return fpsLimit;
   });
 
-  if (result.response === 0) {
-    app.relaunch();
-    app.quit();
-  }
+  ipcMain.handle("getFpsLimit", () => {
+    console.log(`[FPS] Limite atual: ${fpsLimit ?? 'nenhum'}`);
+    return fpsLimit;
+  });
 
-  return fpsLimit;
-});
+  ipcMain.handle("isUnlockedFps", () => {
+    console.log(`[FPS] Estado atual: ${unlimitedFPS ? 'DESBLOQUEADO' : 'BLOQUEADO'}`);
+    return unlimitedFPS;
+  });
 
-ipcMain.handle("getFpsLimit", () => {
-  console.log(`[FPS] Limite atual: ${fpsLimit ?? 'nenhum'}`);
-  return fpsLimit;
-});
-
-ipcMain.handle("isUnlockedFps", () => {
-  console.log(`[FPS] Estado atual: ${unlimitedFPS ? 'DESBLOQUEADO' : 'BLOQUEADO'}`);
-  return unlimitedFPS;
-});
+  ipcMain.handle("getFpsConfig", () => {
+    console.log(`[FPS] Config completa: unlimitedFPS=${unlimitedFPS}, fpsLimit=${fpsLimit}`);
+    return { unlimitedFPS, fpsLimit };
+  });
 
   ipcMain.handle("fullscreen-element", async (event, selector: string) => {
+    if (!selector || typeof selector !== 'string') {
+      console.error('[Fullscreen] Seletor inválido:', selector);
+      return { success: false, error: 'invalid_selector' };
+    }
+
     const win = BrowserWindow.fromWebContents(event.sender);
-    if (!win) return { success: false, error: "Window not found" };
+    if (!win) {
+      console.error('[Fullscreen] Window not found');
+      return { success: false, error: "Window not found" };
+    }
 
     try {
       const result = await event.sender.executeJavaScript(`
@@ -525,7 +614,17 @@ ipcMain.handle("isUnlockedFps", () => {
     }
   });
 
+  ipcMain.on("open-external", (event, url: string) => {
+    console.log("[Launcher] Abrindo link externo:", url);
+    openExternal(url);
+  });
+
   ipcMain.on("notification", (event, message: string) => {
+    if (!message || typeof message !== 'string') {
+      console.error("[Launcher] Notificação inválida:", message);
+      return;
+    }
+
     console.log("[Launcher] Notificação recebida:", message);
 
     const sanitizedMessage = String(message)
@@ -657,6 +756,27 @@ ipcMain.handle("isUnlockedFps", () => {
         console.error('[Notification] Erro ao exibir notificação:', error);
       });
   });
+
+  if (!isDev) {
+    console.log("[AutoUpdater] App empacotado, verificando atualizações...");
+
+    setTimeout(() => {
+      autoUpdater.checkForUpdates()
+        .then((result) => {
+          console.log("[AutoUpdater] Verificação iniciada:", result);
+        })
+        .catch((error) => {
+          console.error("[AutoUpdater] Erro ao iniciar verificação:", error);
+        });
+    }, 3000);
+
+    setInterval(() => {
+      console.log("[AutoUpdater] Verificação periódica...");
+      autoUpdater.checkForUpdates();
+    }, 10 * 60 * 1000);
+  } else {
+    console.log("[AutoUpdater] Modo DEV, atualizações desabilitadas");
+  }
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

@@ -1,6 +1,6 @@
 export enum GameType {
-  BONKIO = 'bonkio',
-  HAXBALL = 'haxball',
+  BONKIO = 'BONKIO',
+  HAXBALL = 'HAXBALL',
 }
 
 export const GameUrls: Record<GameType, string> = {
@@ -17,7 +17,11 @@ export interface Game {
 export type Games = Game[];
 
 export const createGame = (type: GameType): Game => ({
-  name: type.charAt(0).toUpperCase() + type.slice(1),
+  name: type.charAt(0).toUpperCase() + type.slice(1).toLowerCase(),
   type,
   url: GameUrls[type],
 });
+
+console.log("[GameTypes] GameUrls carregado:", GameUrls);
+console.log("[GameTypes] BONKIO URL:", GameUrls[GameType.BONKIO]);
+console.log("[GameTypes] HAXBALL URL:", GameUrls[GameType.HAXBALL]);

@@ -247,7 +247,6 @@
       box-shadow: 0 0 12px rgba(0,0,0,0.3);
       position: relative;
     ">
-      <!-- Botão de Fullscreen -->
       <button id="fullscreen-btn"
         style="
           position: absolute;

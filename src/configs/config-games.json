@@ -1,0 +1,20 @@
+{
+  "games": [
+    {
+      "id": "BONKIO",
+      "name": "Bonk.io",
+      "description": "Um jogo multiplayer de física onde você controla uma bola e tenta derrubar seus oponentes da plataforma!",
+      "url": "https://bonk.io",
+      "icon": "🎮",
+      "color": "#FF6B6B"
+    },
+    {
+      "id": "HAXBALL",
+      "name": "Haxball",
+      "description": "Jogo de futebol multiplayer online com física realista e gameplay rápido!",
+      "url": "https://www.haxball.com/play",
+      "icon": "⚽",
+      "color": "#4ECDC4"
+    }
+  ]
+}

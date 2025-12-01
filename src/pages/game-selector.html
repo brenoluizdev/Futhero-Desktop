@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Futhero Launcher - Selecione seu Jogo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a0f0a 50%, #2d1810 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      position: relative;
+      color: white;
+      padding: 20px 0;
+    }
+
+    /* Background effects - mesmo estilo do site React */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 25%;
+      left: 25%;
+      width: min(400px, 80vw);
+      height: min(400px, 80vw);
+      background: radial-gradient(circle, rgba(249, 115, 22, 0.15) 0%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(60px);
+      animation: pulse 4s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: 25%;
+      right: 25%;
+      width: min(400px, 80vw);
+      height: min(400px, 80vw);
+      background: radial-gradient(circle, rgba(251, 191, 36, 0.15) 0%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(60px);
+      animation: pulse 4s ease-in-out infinite;
+      animation-delay: 2s;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Grid pattern background */
+    .grid-pattern {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(249, 115, 22, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(249, 115, 22, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Floating icons */
+    .floating-icons {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .float-icon {
+      position: absolute;
+      font-size: 2rem;
+      opacity: 0.1;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .float-icon:nth-child(1) {
+      top: 15%;
+      left: 10%;
+      animation-delay: 0s;
+    }
+
+    .float-icon:nth-child(2) {
+      top: 30%;
+      right: 15%;
+      animation-delay: 2s;
+      font-size: 2.5rem;
+    }
+
+    .float-icon:nth-child(3) {
+      bottom: 20%;
+      left: 20%;
+      animation-delay: 4s;
+      font-size: 3rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      padding: 20px;
+      position: relative;
+      z-index: 1;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: clamp(30px, 5vw, 60px);
+      animation: fadeInDown 0.8s ease-out;
+    }
+
+    .logo-wrapper {
+      display: inline-block;
+      position: relative;
+      margin-bottom: clamp(16px, 3vw, 30px);
+    }
+
+    .logo-glow {
+      position: absolute;
+      inset: -20px;
+      background: linear-gradient(to right, #f97316, #fbbf24);
+      border-radius: 50%;
+      filter: blur(40px);
+      opacity: 0.4;
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    .logo-bg {
+      position: relative;
+      background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+      padding: clamp(16px, 2.5vw, 24px);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon {
+      width: clamp(40px, 8vw, 64px);
+      height: clamp(40px, 8vw, 64px);
+      object-fit: contain;
+      filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3));
+    }
+
+    .logo-icon-fallback {
+      font-size: clamp(40px, 8vw, 64px);
+      filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3));
+    }
+
+    .logo-text {
+      font-size: clamp(28px, 7vw, 56px);
+      font-weight: 700;
+      font-family: monospace;
+      letter-spacing: clamp(1px, 0.5vw, 4px);
+      background: linear-gradient(to right, #f97316, #fbbf24);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 40px rgba(249, 115, 22, 0.5);
+      filter: drop-shadow(0 0 20px rgba(249, 115, 22, 0.4));
+      margin-bottom: clamp(8px, 1.5vw, 16px);
+      word-break: break-word;
+    }
+
+    .subtitle {
+      font-size: clamp(14px, 2.5vw, 20px);
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: 300;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0 20px;
+      line-height: 1.5;
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+      gap: clamp(16px, 3vw, 30px);
+      margin-bottom: clamp(20px, 4vw, 40px);
+      padding: 0 10px;
+    }
+
+    .game-card {
+      background: rgba(23, 23, 23, 0.5);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(249, 115, 22, 0.2);
+      border-radius: clamp(16px, 2.5vw, 24px);
+      padding: clamp(24px, 4vw, 40px);
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 20px rgba(249, 115, 22, 0.1);
+      position: relative;
+      overflow: hidden;
+      animation: fadeInUp 0.8s ease-out backwards;
+    }
+
+    .game-card:nth-child(1) { animation-delay: 0.2s; }
+    .game-card:nth-child(2) { animation-delay: 0.3s; }
+
+    .game-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--card-color, #f97316) 0%, var(--card-color-alt, #fbbf24) 100%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      border-radius: inherit;
+    }
+
+    .game-card:hover::before {
+      opacity: 0.1;
+    }
+
+    @media (hover: hover) {
+      .game-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        border-color: rgba(249, 115, 22, 0.5);
+        box-shadow: 0 20px 60px rgba(249, 115, 22, 0.3);
+      }
+    }
+
+    .game-card:active {
+      transform: translateY(-4px) scale(1.01);
+    }
+
+    .game-card-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .game-icon {
+      font-size: clamp(50px, 10vw, 80px);
+      margin-bottom: clamp(16px, 2.5vw, 24px);
+      display: block;
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+      animation: floatIcon 4s ease-in-out infinite;
+    }
+
+    .game-card:nth-child(2) .game-icon {
+      animation-delay: -2s;
+    }
+
+    .game-name {
+      font-size: clamp(24px, 4vw, 32px);
+      font-weight: 700;
+      color: white;
+      margin-bottom: clamp(8px, 1.5vw, 12px);
+      letter-spacing: 0.5px;
+      word-break: break-word;
+    }
+
+    .game-description {
+      font-size: clamp(14px, 2vw, 16px);
+      color: rgba(255, 255, 255, 0.6);
+      line-height: 1.6;
+      margin-bottom: clamp(16px, 2.5vw, 24px);
+    }
+
+    .play-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: clamp(12px, 1.5vw, 14px) clamp(24px, 3vw, 32px);
+      background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+      color: white;
+      border-radius: clamp(8px, 1.5vw, 12px);
+      font-weight: 600;
+      font-size: clamp(14px, 2vw, 16px);
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(249, 115, 22, 0.4);
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      max-width: 200px;
+    }
+
+    .play-button::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, #fb923c 0%, #fcd34d 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    @media (hover: hover) {
+      .play-button:hover::before {
+        opacity: 1;
+      }
+
+      .play-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 24px rgba(249, 115, 22, 0.5);
+      }
+    }
+
+    .play-button span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .play-icon {
+      position: relative;
+      z-index: 1;
+      font-size: clamp(16px, 2.5vw, 20px);
+    }
+
+    .footer {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: clamp(12px, 1.8vw, 14px);
+      animation: fadeIn 1s ease-out 0.8s backwards;
+      padding: clamp(20px, 4vw, 40px) 20px 20px;
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: clamp(16px, 3vw, 32px);
+      margin-top: clamp(12px, 2vw, 16px);
+    }
+
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.6);
+      text-decoration: none;
+      transition: color 0.3s ease;
+      font-size: clamp(11px, 1.6vw, 13px);
+      white-space: nowrap;
+    }
+
+    .footer-links a:hover {
+      color: #f97316;
+    }
+
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      flex-direction: column;
+      gap: clamp(16px, 3vw, 24px);
+      padding: 20px;
+    }
+
+    .loading.active {
+      display: flex;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .spinner {
+      width: clamp(48px, 8vw, 64px);
+      height: clamp(48px, 8vw, 64px);
+      border: 4px solid rgba(249, 115, 22, 0.2);
+      border-top-color: #f97316;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .loading-text {
+      color: white;
+      font-size: clamp(16px, 2.5vw, 20px);
+      font-weight: 500;
+      animation: pulse 2s ease-in-out infinite;
+      text-align: center;
+    }
+
+    .loading-game-name {
+      color: #f97316;
+      font-size: clamp(20px, 3vw, 24px);
+      font-weight: 700;
+      text-align: center;
+      word-break: break-word;
+      max-width: 90%;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes float {
+      0%, 100% { 
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.1;
+      }
+      50% { 
+        transform: translateY(-20px) rotate(180deg);
+        opacity: 0.2;
+      }
+    }
+
+    @keyframes floatIcon {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Feature badges */
+    .feature-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: clamp(4px, 0.8vw, 6px) clamp(10px, 1.5vw, 12px);
+      background: rgba(249, 115, 22, 0.1);
+      border: 1px solid rgba(249, 115, 22, 0.3);
+      border-radius: 20px;
+      font-size: clamp(11px, 1.5vw, 12px);
+      color: #fbbf24;
+      margin-bottom: clamp(12px, 2vw, 16px);
+      font-weight: 600;
+    }
+
+    .badge-dot {
+      width: clamp(5px, 0.8vw, 6px);
+      height: clamp(5px, 0.8vw, 6px);
+      background: #f97316;
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    /* Tablets em modo paisagem */
+    @media (max-width: 1024px) and (orientation: landscape) {
+      body {
+        padding: 10px 0;
+      }
+
+      .header {
+        margin-bottom: 30px;
+      }
+
+      .games-grid {
+        gap: 20px;
+      }
+    }
+
+    /* Tablets em modo retrato */
+    @media (max-width: 768px) {
+      .games-grid {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .floating-icons {
+        display: none;
+      }
+
+      body::before,
+      body::after {
+        width: 60vw;
+        height: 60vw;
+      }
+    }
+
+    /* Smartphones */
+    @media (max-width: 480px) {
+      body {
+        align-items: flex-start;
+        padding: 10px 0;
+      }
+
+      .container {
+        padding: 10px;
+      }
+
+      .header {
+        margin-bottom: 24px;
+      }
+
+      .logo-wrapper {
+        margin-bottom: 12px;
+      }
+
+      .games-grid {
+        gap: 16px;
+        padding: 0;
+      }
+
+      .game-card {
+        padding: 20px;
+      }
+
+      .footer {
+        padding-top: 24px;
+      }
+
+      .footer-links {
+        gap: 12px;
+      }
+    }
+
+    /* Telas muito pequenas */
+    @media (max-width: 320px) {
+      .logo-text {
+        font-size: 24px;
+      }
+
+      .game-name {
+        font-size: 20px;
+      }
+
+      .play-button {
+        padding: 10px 20px;
+        font-size: 14px;
+      }
+    }
+
+    /* Landscape em smartphones */
+    @media (max-height: 500px) and (orientation: landscape) {
+      body {
+        padding: 5px 0;
+      }
+
+      .header {
+        margin-bottom: 16px;
+      }
+
+      .logo-wrapper {
+        margin-bottom: 8px;
+      }
+
+      .logo-bg {
+        padding: 12px;
+      }
+
+      .logo-icon,
+      .logo-icon-fallback {
+        width: 32px;
+        height: 32px;
+        font-size: 32px;
+      }
+
+      .logo-text {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+
+      .subtitle {
+        font-size: 12px;
+      }
+
+      .games-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 12px;
+      }
+
+      .game-card {
+        padding: 16px;
+      }
+
+      .game-icon {
+        font-size: 40px;
+        margin-bottom: 12px;
+      }
+
+      .footer {
+        padding-top: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-pattern"></div>
+  
+  <div class="floating-icons">
+    <div class="float-icon">🚀</div>
+    <div class="float-icon">⚡</div>
+    <div class="float-icon">🛡️</div>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <div class="logo-wrapper">
+        <div class="logo-glow"></div>
+        <div class="logo-bg">
+          <img src="../assets/icon.ico" alt="Futhero Logo" class="logo-icon" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+          <div class="logo-icon-fallback" style="display: none;">🎮</div>
+        </div>
+      </div>
+      
+      <h1 class="logo-text">FUTHERO LAUNCHER</h1>
+      <p class="subtitle">Launcher definitivo para seus jogos favoritos. Interface moderna e otimizada.</p>
+    </div>
+
+    <div class="games-grid" id="gamesGrid"></div>
+
+    <div class="footer">
+      <p>Futhero Desktop é open-source e totalmente gratuito</p>
+      <div class="footer-links">
+        <a href="#" onclick="openExternal('https://github.com/brenoluizdev/Futhero-Desktop')">GitHub</a>
+        <a href="#" onclick="openExternal('https://discord.gg/qRJ4UCMfja')">Discord</a>
+        <a href="#" onclick="openExternal('https://github.com/brenoluizdev/Futhero-Desktop/issues/new')">Reportar Bug</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div class="loading-game-name" id="loadingGameName"></div>
+    <div class="loading-text">Iniciando jogo...</div>
+  </div>
+
+  <script>
+    async function loadGames() {
+      try {
+        let config = null;
+        const possiblePaths = [
+          '../configs/config-games.json',
+          './configs/config-games.json',
+          '../config-games.json',
+          './config-games.json'
+        ];
+
+        for (const path of possiblePaths) {
+          try {
+            console.log('[Loader] Tentando carregar:', path);
+            const response = await fetch(path);
+            if (response.ok) {
+              config = await response.json();
+              console.log('[Loader] ✅ Configuração carregada de:', path);
+              break;
+            }
+          } catch (e) {
+            console.log('[Loader] ❌ Falha em:', path);
+          }
+        }
+
+        if (!config) {
+          throw new Error('Não foi possível carregar config-games.json');
+        }
+        
+        const gamesGrid = document.getElementById('gamesGrid');
+        
+        config.games.forEach(game => {
+          const card = document.createElement('div');
+          card.className = 'game-card';
+          card.style.setProperty('--card-color', game.color);
+          card.style.setProperty('--card-color-alt', game.colorAlt || game.color);
+          
+          card.innerHTML = `
+            <div class="game-card-content">
+              <div class="feature-badge">
+                <div class="badge-dot"></div>
+                <span>Disponível</span>
+              </div>
+              <span class="game-icon">${game.icon}</span>
+              <h2 class="game-name">${game.name}</h2>
+              <p class="game-description">${game.description}</p>
+              <button class="play-button">
+                <span class="play-icon">▶</span>
+                <span>Jogar Agora</span>
+              </button>
+            </div>
+          `;
+          
+          card.addEventListener('click', () => {
+            startGame(game);
+          });
+          
+          gamesGrid.appendChild(card);
+        });
+      } catch (error) {
+        console.error('Erro ao carregar jogos:', error);
+        document.getElementById('gamesGrid').innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; color: rgba(255,255,255,0.7); padding: clamp(40px, 6vw, 60px); background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); border-radius: 24px;">
+            <div style="font-size: clamp(32px, 6vw, 48px); margin-bottom: 16px;">❌</div>
+            <h2 style="font-size: clamp(18px, 3vw, 24px); margin-bottom: 8px;">Erro ao carregar jogos</h2>
+            <p style="color: rgba(255,255,255,0.5); font-size: clamp(14px, 2vw, 16px);">Verifique se o arquivo config-games.json está presente.</p>
+          </div>
+        `;
+      }
+    }
+
+    function startGame(game) {
+      console.log('Iniciando jogo:', game.name);
+      
+      const loading = document.getElementById('loading');
+      const loadingGameName = document.getElementById('loadingGameName');
+      loadingGameName.textContent = game.name;
+      loading.classList.add('active');
+      
+      if (window.futheroLauncherAPI) {
+        window.futheroLauncherAPI.switchGame(game.id);
+      } else {
+        console.warn('API do Futhero não encontrada, simulando...');
+        setTimeout(() => {
+          window.location.href = game.url;
+        }, 1500);
+      }
+    }
+
+    function openExternal(url) {
+      if (window.futheroLauncherAPI && window.futheroLauncherAPI.openExternal) {
+        window.futheroLauncherAPI.openExternal(url);
+      } else {
+        window.open(url, '_blank');
+      }
+      return false;
+    }
+
+    window.addEventListener('DOMContentLoaded', loadGames);
+  </script>
+</body>
+</html>
