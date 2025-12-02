@@ -6,7 +6,7 @@ directories:
   buildResources: "build"
 
 files:
-  - dist/**/* 
+  - dist/**/*
   - assets/**/*
   - "!node_modules/.cache/**/*"
   - node_modules/**/*
@@ -29,6 +29,7 @@ publish:
   provider: github
   owner: brenoluizdev
   repo: Futhero-Desktop
-  prerelease: true
+  releaseType: prerelease
+  channel: beta
 
 artifactName: "Futhero-Beta-${version}.${ext}"
