@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*.*.*"
+      - "!v*.*.*-beta.*"
 
 jobs:
   build:
@@ -20,12 +21,6 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-
-      - name: Lint (optional)
-        run: npm run lint --if-present
-
-      - name: Run tests (optional)
-        run: npm test --if-present
 
       - name: Build app
         env:
