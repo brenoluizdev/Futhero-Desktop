@@ -1,5 +1,7 @@
+extends: null
+
 appId: com.brenoluizdev.futhero.beta
-productName: Futhero (Beta)
+productName: Futhero Beta
 
 directories:
   output: "release-beta"
@@ -13,17 +15,14 @@ files:
   - package.json
 
 extraResources:
-  - from: dist/scripts
-    to: scripts
-  - from: dist/pages
-    to: pages
-  - from: dist/configs
-    to: configs
+  - from: assets/images/icon-beta.ico
+    to: assets/images/icon-beta.ico
+  - from: assets/images/icon.ico
+    to: assets/images/icon.ico
 
 win:
   target:
     - nsis
-  icon: build/icon.ico
 
 publish:
   provider: github
