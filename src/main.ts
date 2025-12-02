@@ -11,6 +11,14 @@ app.commandLine.appendSwitch('no-sandbox');
 require("dotenv").config();
 
 const isDev = require("electron-is-dev");
+const isBeta = app.getVersion().includes("beta");
+
+if (isBeta) {
+  console.log("[AutoUpdater] Versão beta detectada. Permitindo prereleases.");
+  autoUpdater.allowPrerelease = true;
+} else {
+  autoUpdater.allowPrerelease = false;
+}
 
 const gameManager = new GameManager();
 

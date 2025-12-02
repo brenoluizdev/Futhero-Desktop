@@ -7,6 +7,7 @@
     "dev": "npm run build && electron .",
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.scripts.json && npm run copy-assets && npm run copy-scripts-static",
     "build:win": "npm run build && electron-builder --win",
+    "build:win-beta": "npm run build && electron-builder --win --config electron-builder-beta.yml",
     "build:linux": "npm run build && electron-builder --linux",
     "build:mac": "npm run build && electron-builder --mac",
     "copy-assets": "xcopy assets dist\\assets /E /I /Y",

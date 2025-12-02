@@ -1,0 +1,34 @@
+appId: com.brenoluizdev.futhero.beta
+productName: Futhero (Beta)
+
+directories:
+  output: "release-beta"
+  buildResources: "build"
+
+files:
+  - dist/**/* 
+  - assets/**/*
+  - "!node_modules/.cache/**/*"
+  - node_modules/**/*
+  - package.json
+
+extraResources:
+  - from: dist/scripts
+    to: scripts
+  - from: dist/pages
+    to: pages
+  - from: dist/configs
+    to: configs
+
+win:
+  target:
+    - nsis
+  icon: build/icon.ico
+
+publish:
+  provider: github
+  owner: brenoluizdev
+  repo: Futhero-Desktop
+  prerelease: true
+
+artifactName: "Futhero-Beta-${version}.${ext}"

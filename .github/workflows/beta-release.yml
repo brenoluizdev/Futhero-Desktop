@@ -1,12 +1,12 @@
-name: Build and Release
+name: Beta Build & Release
 
 on:
   push:
     tags:
-      - "v*.*.*"
+      - "v*.*.*-beta.*"
 
 jobs:
-  build:
+  build-beta:
     runs-on: windows-latest
 
     steps:
@@ -21,20 +21,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint (optional)
-        run: npm run lint --if-present
-
-      - name: Run tests (optional)
-        run: npm test --if-present
-
-      - name: Build app
+      - name: Build Beta App
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build:win
+        run: npm run build:win-beta
 
-      - name: Upload Release Artifacts
+      - name: Publish Beta Release
         uses: softprops/action-gh-release@v2
         with:
+          prerelease: true
           files: |
             dist/**/*.exe
             dist/**/*.zip
