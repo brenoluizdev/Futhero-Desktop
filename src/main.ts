@@ -102,9 +102,12 @@ autoUpdater.on("update-downloaded", (info) => {
   });
 });
 
-const iconPath = isBeta
-  ? path.join(process.resourcesPath, "assets", "images", "icon-beta.png")
-  : path.join(process.resourcesPath, "assets", "images", "icon.ico");
+const iconPath = path.join(
+  process.resourcesPath,
+  "assets",
+  "images",
+  isBeta ? "icon-beta.ico" : "icon.ico"
+);
 
 function createWindow(gameType?: GameType) {
   console.log(`[Launcher] Criando janela para o jogo: ${gameType || 'Seletor'}`);
