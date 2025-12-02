@@ -1,5 +1,8 @@
 name: Beta Build & Release
 
+permissions:
+  contents: write
+
 on:
   push:
     tags:
@@ -31,5 +34,5 @@ jobs:
         with:
           prerelease: true
           files: |
-            dist/**/*.exe
-            dist/**/*.zip
+            release-beta/**/*.exe
+            release-beta/**/*.zip
