@@ -102,8 +102,8 @@ autoUpdater.on("update-downloaded", (info) => {
   });
 });
 
-const iconPath = isDev
-  ? path.join(__dirname, "../assets/images/icon.ico")
+const iconPath = isBeta
+  ? path.join(process.resourcesPath, "assets", "images", "icon-beta.png")
   : path.join(process.resourcesPath, "assets", "images", "icon.ico");
 
 function createWindow(gameType?: GameType) {
@@ -153,9 +153,11 @@ function createWindow(gameType?: GameType) {
   mainWindow.on("page-title-updated", (event) => {
     event.preventDefault();
     if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.setTitle("Futhero Launcher");
+      const title = isBeta ? "Futhero Launcher BETA" : "Futhero Launcher";
+      mainWindow.setTitle(title);
     }
   });
+
 
   mainWindow.webContents.on("did-finish-load", () => {
     if (!mainWindow) return;
@@ -205,7 +207,7 @@ function openExternal(url: string) {
   }
   try {
     const parsedUrl = new URL(url);
-    if (!['http:', 'https:'].includes(parsedUrl.protocol )) {
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
       console.error('[OpenExternal] Protocolo não permitido:', parsedUrl.protocol);
       return false;
     }
@@ -236,25 +238,25 @@ app.whenReady().then(() => {
   });
 
   const launchGameArg = process.argv.find(arg => arg.startsWith('--launch-game='));
-  
+
   if (launchGameArg) {
     const gameType = launchGameArg.split('=')[1] as GameType;
     if (GameUrls[gameType]) {
       console.log(`[Launcher] Iniciando diretamente no jogo via flag: ${gameType}`);
-      
+
       const handler = gameManager.getHandler(gameType);
       handler?.applyCommandLineFlags();
 
       createWindow(gameType);
-      
+
       const gameUrl = GameUrls[gameType];
       if (mainWindow && gameUrl) {
         console.log(`[Launcher] ✅ Carregando janela com URL: ${gameUrl}`);
         mainWindow.loadURL(gameUrl);
       }
     } else {
-        console.error(`[Launcher] Flag de jogo inválida: ${gameType}. Abrindo seletor.`);
-        createWindow();
+      console.error(`[Launcher] Flag de jogo inválida: ${gameType}. Abrindo seletor.`);
+      createWindow();
     }
   } else {
     console.log('[Launcher] Nenhuma flag de jogo detectada. Abrindo o seletor.');
@@ -272,15 +274,15 @@ app.whenReady().then(() => {
     }
 
     console.log(`[Launcher] Preparando para reiniciar e lançar ${gameType}...`);
-    
+
     const args = process.argv.slice(1).filter(arg => !arg.startsWith('--launch-game'));
     args.push(`--launch-game=${gameType}`);
-    
+
     app.relaunch({ args });
     app.quit();
   });
 
- ipcMain.handle("toggleUnlimitedFPS", async () => {
+  ipcMain.handle("toggleUnlimitedFPS", async () => {
     const handler = gameManager.getHandler(GameType.BONKIO);
     if (!(handler instanceof BonkHandler)) return false;
 
@@ -294,7 +296,7 @@ app.whenReady().then(() => {
         detail: "Deseja reiniciar agora?", buttons: ["Reiniciar", "Depois"], defaultId: 0, cancelId: 1
       }).then(result => { if (result.response === 0) { app.relaunch(); app.quit(); } });
     }
-    
+
     return newState;
   });
 
