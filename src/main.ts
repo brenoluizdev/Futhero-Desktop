@@ -27,6 +27,8 @@ let joinWindow: BrowserWindow | null = null;
 
 autoUpdater.logger = console;
 autoUpdater.autoDownload = true;
+autoUpdater.allowDowngrade = false;
+autoUpdater.channel = isBeta ? "beta" : "latest";
 
 autoUpdater.on("checking-for-update", () => {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
