@@ -64,7 +64,7 @@
     ]
   },
   "devDependencies": {
-    "@types/electron": "latest",
+    "@types/electron": "^1.6.12",
     "@types/node": "^20.12.12",
     "electron": "^39.1.1",
     "electron-builder": "^26.0.12",

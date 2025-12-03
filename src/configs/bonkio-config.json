@@ -1,7 +1,7 @@
 {
   "enableFPSControl": true,
-  "unlimitedFPS": true,
-  "fpsLimit": null,
+  "unlimitedFPS": false,
+  "fpsLimit": 120,
   "customScriptsPath": "bonk",
   "webPreferences": {
     "webSecurity": false,

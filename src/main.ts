@@ -7,8 +7,6 @@ import { GameManager } from "./handlers/GameManager";
 import { BonkHandler } from "./handlers/BonkHandler";
 
 app.commandLine.appendSwitch('no-sandbox');
-app.commandLine.appendSwitch("disable-frame-rate-limit");
-app.commandLine.appendSwitch("disable-gpu-vsync");
 
 require("dotenv").config();
 
@@ -250,6 +248,7 @@ app.whenReady().then(() => {
       console.log(`[Launcher] Iniciando diretamente no jogo via flag: ${gameType}`);
 
       const handler = gameManager.getHandler(gameType);
+
       handler?.applyCommandLineFlags();
 
       createWindow(gameType);
@@ -291,15 +290,28 @@ app.whenReady().then(() => {
     const handler = gameManager.getHandler(GameType.BONKIO);
     if (!(handler instanceof BonkHandler)) return false;
 
-    const needsRestart = await handler.toggleUnlimitedFPS();
+    const oldState = handler.isUnlockedFps();
+    await handler.toggleUnlimitedFPS();
     const newState = handler.isUnlockedFps();
 
-    if (needsRestart) {
-      dialog.showMessageBox({
-        type: "info", title: "Mudança de FPS",
-        message: newState ? "FPS ilimitado ativado! O launcher precisa ser reiniciado." : "FPS limitado reativado! O launcher precisa ser reiniciado.",
-        detail: "Deseja reiniciar agora?", buttons: ["Reiniciar", "Depois"], defaultId: 0, cancelId: 1
-      }).then(result => { if (result.response === 0) { app.relaunch(); app.quit(); } });
+    if (oldState !== newState) {
+      const response = await dialog.showMessageBox({
+        type: "info", 
+        title: "Mudança de FPS",
+        message: newState 
+          ? "FPS ilimitado ativado! O launcher precisa ser reiniciado." 
+          : "FPS limitado reativado! O launcher precisa ser reiniciado.",
+        detail: "Deseja reiniciar agora?", 
+        buttons: ["Reiniciar", "Depois"], 
+        defaultId: 0, 
+        cancelId: 1
+      });
+
+      if (response.response === 0) {
+        console.log("[FPS] Reiniciando aplicação...");
+        app.relaunch();
+        app.quit();
+      }
     }
     
     return newState;
@@ -309,15 +321,45 @@ app.whenReady().then(() => {
     const handler = gameManager.getHandler(GameType.BONKIO);
     if (!(handler instanceof BonkHandler)) return null;
 
-    const needsRestart = await handler.setFpsLimit(limit);
+    const wasUnlimited = handler.isUnlockedFps();
+    const needsAppRestart = await handler.setFpsLimit(limit);
     const newLimit = handler.getFpsLimit();
 
-    if (needsRestart) {
-      dialog.showMessageBox({
-        type: "info", title: "Limite de FPS Configurado",
-        message: newLimit ? `FPS limitado a ${newLimit}! O launcher precisa ser reiniciado.` : "Limite de FPS removido! O launcher precisa ser reiniciado.",
-        detail: "Deseja reiniciar agora?", buttons: ["Reiniciar", "Depois"], defaultId: 0, cancelId: 1
-      }).then(result => { if (result.response === 0) { app.relaunch(); app.quit(); } });
+    if (needsAppRestart && wasUnlimited) {
+      const response = await dialog.showMessageBox({
+        type: "info", 
+        title: "Limite de FPS Configurado",
+        message: newLimit 
+          ? `FPS limitado a ${newLimit}! O launcher precisa ser reiniciado.` 
+          : "Modo padrão ativado! O launcher precisa ser reiniciado.",
+        detail: "Deseja reiniciar agora?", 
+        buttons: ["Reiniciar", "Depois"], 
+        defaultId: 0, 
+        cancelId: 1
+      });
+
+      if (response.response === 0) {
+        console.log("[FPS] Reiniciando aplicação...");
+        app.relaunch();
+        app.quit();
+      }
+    } else if (mainWindow) {
+      const response = await dialog.showMessageBox({
+        type: "info", 
+        title: "Limite de FPS Configurado",
+        message: newLimit 
+          ? `FPS limitado a ${newLimit}! A página precisa ser recarregada.` 
+          : "Modo padrão ativado! A página precisa ser recarregada.",
+        detail: "Deseja recarregar agora?", 
+        buttons: ["Recarregar", "Depois"], 
+        defaultId: 0, 
+        cancelId: 1
+      });
+
+      if (response.response === 0) {
+        console.log("[FPS] Recarregando página...");
+        mainWindow.webContents.reload();
+      }
     }
 
     return newLimit;
@@ -335,7 +377,9 @@ app.whenReady().then(() => {
 
   ipcMain.handle("getFpsConfig", () => {
     const handler = gameManager.getHandler(GameType.BONKIO);
-    return handler instanceof BonkHandler ? handler.getFpsConfig() : { unlimitedFPS: false, fpsLimit: null };
+    return handler instanceof BonkHandler 
+      ? handler.getFpsConfig() 
+      : { unlimitedFPS: false, fpsLimit: null, isDefault: true };
   });
 
   ipcMain.handle("set-frame-rate", async (event, number: number) => {
