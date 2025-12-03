@@ -71,6 +71,10 @@ const futheroLauncherAPI = {
     ipcRenderer.send("switch-game", gameType);
   },
 
+  setFrameRate: (number: number) => {
+    ipcRenderer.send("set-frame-rate", number);
+  },
+
   openJoinWindow: () => {
     ipcRenderer.send("open-join-window");
   },

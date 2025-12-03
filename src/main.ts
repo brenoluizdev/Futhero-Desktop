@@ -7,6 +7,8 @@ import { GameManager } from "./handlers/GameManager";
 import { BonkHandler } from "./handlers/BonkHandler";
 
 app.commandLine.appendSwitch('no-sandbox');
+app.commandLine.appendSwitch("disable-frame-rate-limit");
+app.commandLine.appendSwitch("disable-gpu-vsync");
 
 require("dotenv").config();
 
@@ -299,7 +301,7 @@ app.whenReady().then(() => {
         detail: "Deseja reiniciar agora?", buttons: ["Reiniciar", "Depois"], defaultId: 0, cancelId: 1
       }).then(result => { if (result.response === 0) { app.relaunch(); app.quit(); } });
     }
-
+    
     return newState;
   });
 
@@ -334,6 +336,15 @@ app.whenReady().then(() => {
   ipcMain.handle("getFpsConfig", () => {
     const handler = gameManager.getHandler(GameType.BONKIO);
     return handler instanceof BonkHandler ? handler.getFpsConfig() : { unlimitedFPS: false, fpsLimit: null };
+  });
+
+  ipcMain.handle("set-frame-rate", async (event, number: number) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) {
+      console.error('[Fullscreen] Window not found');
+      return { success: false, error: "Window not found" };
+    }
+    win.webContents.setFrameRate(number);
   });
 
   ipcMain.handle("fullscreen-element", async (event, selector: string) => {

@@ -1,48 +1,45 @@
-import { app, BrowserWindow } from "electron";
+import { BrowserWindow, app } from "electron";
 import { BaseGameHandler, GameConfig } from "./BaseGameHandler";
 
+// Assumindo que BaseGameHandler e GameConfig estão definidos em outro lugar
+// e que a classe BonkHandler estende BaseGameHandler.
+
 export class BonkHandler extends BaseGameHandler {
+  // Assumindo que BaseGameHandler mantém uma referência à janela ativa em 'this.window'
+  // e que o método setWindow(window: BrowserWindow) é chamado pelo GameManager.
+
   constructor(scriptsBasePath: string) {
-    super("BONKIO", "https://bonk.io", scriptsBasePath );
+    super("BONKIO", "https://bonk.io", scriptsBasePath);
   }
 
   getDefaultConfig(): GameConfig {
     return {
       enableFPSControl: true,
       unlimitedFPS: false,
-      fpsLimit: null,
-      customScriptsPath: "bonk"
+      fpsLimit: 120,
+      customScriptsPath: "bonk",
+      webPreferences: {
+        webSecurity: false,
+        allowRunningInsecureContent: true,
+      }
     };
   }
 
+  // Flags globais devem ser aplicadas no main.ts antes de app.ready
   applyCommandLineFlags(): void {
-    if (!this.config.enableFPSControl) {
-      console.log("[BONKIO] FPS control desabilitado");
-      return;
-    }
-
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('[BONKIO FPS] Configuração:');
-    console.log(`[BONKIO FPS]   unlimitedFPS: ${this.config.unlimitedFPS}`);
-    console.log(`[BONKIO FPS]   fpsLimit: ${this.config.fpsLimit}`);
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-    if (this.config.unlimitedFPS) {
-      console.log("[BONKIO FPS] Aplicando flags de FPS ilimitado...");
-      app.commandLine.appendSwitch("disable-frame-rate-limit");
-      app.commandLine.appendSwitch("disable-gpu-vsync");
-    } else if (this.config.fpsLimit && this.config.fpsLimit > 0) {
-      console.log(`[BONKIO FPS] Limite de ${this.config.fpsLimit} FPS`);
-      app.commandLine.appendSwitch("disable-frame-rate-limit");
-      app.commandLine.appendSwitch("disable-gpu-vsync");
-    } else {
-      console.log("[BONKIO FPS] Modo padrão");
-    }
+    // Esta função é chamada pelo GameManager.applyInitialFlags(gameType)
+    // Se você estiver usando a nova estrutura, esta função deve ser vazia
+    // e as flags globais devem estar no main.ts antes de app.ready.
+    console.log('[BONKIO] applyCommandLineFlags: Nenhuma flag global aplicada aqui. Verifique se estão no main.ts antes de app.ready.');
   }
 
   onPageLoad(window: BrowserWindow): void {
-    console.log("[BONKIO] Página carregada, aplicando customizações...");
+    console.log("[BONKIO] Página carregada, aplicando customizações e injeção de scripts...");
     
+    // O script fps-limiter.js será injetado pelo this.injectScripts(window)
+    // que é chamado abaixo.
+
+    // 1. Lógica de fixes de UI (mantida do seu código original)
     window.webContents.executeJavaScript(`
       (function() {
         console.log("[BonkFix] Aplicando fixes de UI...");
@@ -58,9 +55,11 @@ export class BonkHandler extends BaseGameHandler {
       })();
     `);
 
+    // 2. Injeção de scripts (incluindo o fps-limiter.js)
     this.injectScripts(window);
   }
 
+  // Métodos de controle de FPS (assumindo que eles atualizam a configuração e a salvam)
   async toggleUnlimitedFPS(): Promise<boolean> {
     if (!this.config.enableFPSControl) {
       console.log("[BONKIO] FPS control está desabilitado");
@@ -76,6 +75,13 @@ export class BonkHandler extends BaseGameHandler {
     });
     
     console.log(`[BONKIO FPS] Estado alterado: ${newValue ? 'DESBLOQUEADO' : 'BLOQUEADO'}`);
+
+    // Para aplicar a mudança dinamicamente, o script injetado deve ser reexecutado.
+    // Como o script tem a verificação window.__futheroFpsLimiterActive,
+    // a forma mais simples é recarregar a página ou notificar o usuário.
+    // Se você quiser que seja dinâmico, você precisará de uma lógica para remover
+    // o limitador antigo e injetar o novo, ou simplesmente confiar que o script
+    // será reexecutado na próxima navegação.
 
     return oldUnlimited !== newValue;
   }
@@ -102,6 +108,9 @@ export class BonkHandler extends BaseGameHandler {
     });
 
     console.log(`[BONKIO FPS] Limite definido: ${limit ?? 'nenhum'}`);
+
+    // Para aplicar a mudança dinamicamente, o script injetado deve ser reexecutado.
+    // Veja o comentário em toggleUnlimitedFPS.
 
     return oldLimit !== limit || oldUnlimited !== newUnlimitedState;
   }
