@@ -16,13 +16,27 @@ const isBeta = appVersion.includes("-beta");
 console.log(`[Launcher] Versão do app: ${appVersion}`);
 console.log(`[Launcher] É beta? ${isBeta}`);
 
+// Configuração do autoUpdater com mais logs
 autoUpdater.logger = console;
 autoUpdater.autoDownload = false;
 autoUpdater.allowDowngrade = false;
 autoUpdater.allowPrerelease = false;
 autoUpdater.channel = "latest";
 
-console.log("[AutoUpdater] Versão de produção detectada.");
+// IMPORTANTE: Force a URL do feed para o GitHub
+autoUpdater.setFeedURL({
+  provider: 'github',
+  owner: 'brenoluizdev',
+  repo: 'Futhero-Desktop',
+  private: false
+});
+
+console.log("[AutoUpdater] Configuração:");
+console.log("  - Canal:", autoUpdater.channel);
+console.log("  - Feed URL configurada para GitHub");
+console.log("  - Provider: github");
+console.log("  - Owner: brenoluizdev");
+console.log("  - Repo: Futhero-Desktop");
 
 const gameManager = new GameManager();
 
@@ -43,6 +57,7 @@ autoUpdater.on("update-available", (info) => {
   console.log("[AutoUpdater] ✅ Nova atualização disponível!");
   console.log(`[AutoUpdater] Versão disponível: ${info.version}`);
   console.log(`[AutoUpdater] Versão atual: ${appVersion}`);
+  console.log("[AutoUpdater] Info completa:", JSON.stringify(info, null, 2));
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
   dialog.showMessageBox({
@@ -67,12 +82,14 @@ autoUpdater.on("update-not-available", (info) => {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("[AutoUpdater] ℹ️ Nenhuma atualização disponível");
   console.log(`[AutoUpdater] Versão atual: ${appVersion}`);
+  console.log("[AutoUpdater] Info:", JSON.stringify(info, null, 2));
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 });
 
 autoUpdater.on("error", (err) => {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.error("[AutoUpdater] ❌ ERRO:", err);
+  console.error("[AutoUpdater] Message:", err.message);
   console.error("[AutoUpdater] Stack:", err.stack);
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 });
@@ -583,21 +600,28 @@ app.whenReady().then(() => {
     `).catch(error => console.error('[Notification] Erro:', error));
   });
 
-  console.log("[AutoUpdater] Verificando atualizações na inicialização...");
-  setTimeout(() => {
-    autoUpdater.checkForUpdates()
-      .then(result => {
-        console.log("[AutoUpdater] Resultado da verificação:", result);
-      })
-      .catch(error => {
-        console.error("[AutoUpdater] Erro ao verificar:", error);
-      });
-  }, 3000);
+  // Verificação inicial de atualização - SOMENTE EM PRODUÇÃO
+  if (app.isPackaged) {
+    console.log("[AutoUpdater] App empacotado detectado. Verificando atualizações em 3s...");
+    setTimeout(() => {
+      console.log("[AutoUpdater] Iniciando verificação de atualização...");
+      autoUpdater.checkForUpdates()
+        .then(result => {
+          console.log("[AutoUpdater] Resultado da verificação:", result);
+        })
+        .catch(error => {
+          console.error("[AutoUpdater] Erro ao verificar:", error);
+        });
+    }, 3000);
 
-  setInterval(() => {
-    console.log("[AutoUpdater] Verificação periódica iniciada...");
-    autoUpdater.checkForUpdates();
-  }, 10 * 60 * 1000);
+    // Verificação periódica a cada 10 minutos
+    setInterval(() => {
+      console.log("[AutoUpdater] Verificação periódica iniciada...");
+      autoUpdater.checkForUpdates();
+    }, 10 * 60 * 1000);
+  } else {
+    console.log("[AutoUpdater] Modo desenvolvimento - auto-updater desativado");
+  }
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
