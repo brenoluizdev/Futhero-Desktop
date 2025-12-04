@@ -16,14 +16,12 @@ const isBeta = appVersion.includes("-beta");
 console.log(`[Launcher] Versão do app: ${appVersion}`);
 console.log(`[Launcher] É beta? ${isBeta}`);
 
-// Configuração do autoUpdater com mais logs
 autoUpdater.logger = console;
 autoUpdater.autoDownload = false;
 autoUpdater.allowDowngrade = false;
 autoUpdater.allowPrerelease = false;
 autoUpdater.channel = "latest";
 
-// IMPORTANTE: Force a URL do feed para o GitHub
 autoUpdater.setFeedURL({
   provider: 'github',
   owner: 'brenoluizdev',
@@ -600,7 +598,6 @@ app.whenReady().then(() => {
     `).catch(error => console.error('[Notification] Erro:', error));
   });
 
-  // Verificação inicial de atualização - SOMENTE EM PRODUÇÃO
   if (app.isPackaged) {
     console.log("[AutoUpdater] App empacotado detectado. Verificando atualizações em 3s...");
     setTimeout(() => {
@@ -614,7 +611,6 @@ app.whenReady().then(() => {
         });
     }, 3000);
 
-    // Verificação periódica a cada 10 minutos
     setInterval(() => {
       console.log("[AutoUpdater] Verificação periódica iniciada...");
       autoUpdater.checkForUpdates();
