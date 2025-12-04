@@ -11,13 +11,25 @@ app.commandLine.appendSwitch('no-sandbox');
 require("dotenv").config();
 
 const isDev = require("electron-is-dev");
-const isBeta = app.getVersion().includes("beta");
+
+const appVersion = app.getVersion();
+const isBeta = appVersion.includes("-beta");
+
+console.log(`[Launcher] Versão do app: ${appVersion}`);
+console.log(`[Launcher] É beta? ${isBeta}`);
+
+autoUpdater.logger = console;
+autoUpdater.autoDownload = false;
+autoUpdater.allowDowngrade = false;
 
 if (isBeta) {
   console.log("[AutoUpdater] Versão beta detectada. Permitindo prereleases.");
   autoUpdater.allowPrerelease = true;
+  autoUpdater.channel = "beta";
 } else {
+  console.log("[AutoUpdater] Versão de produção detectada.");
   autoUpdater.allowPrerelease = false;
+  autoUpdater.channel = "latest";
 }
 
 const gameManager = new GameManager();
@@ -25,22 +37,20 @@ const gameManager = new GameManager();
 let mainWindow: BrowserWindow | null = null;
 let joinWindow: BrowserWindow | null = null;
 
-autoUpdater.logger = console;
-autoUpdater.autoDownload = true;
-autoUpdater.allowDowngrade = false;
-autoUpdater.channel = isBeta ? "beta" : "latest";
-
 autoUpdater.on("checking-for-update", () => {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("[AutoUpdater] 🔍 Verificando atualizações...");
-  console.log(`[AutoUpdater] Versão atual: ${app.getVersion()}`);
+  console.log(`[AutoUpdater] Versão atual: ${appVersion}`);
+  console.log(`[AutoUpdater] Canal: ${autoUpdater.channel}`);
+  console.log(`[AutoUpdater] Prerelease: ${autoUpdater.allowPrerelease}`);
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 });
 
 autoUpdater.on("update-available", (info) => {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("[AutoUpdater] ✅ Nova atualização disponível!");
-  console.log(`[AutoUpdater] Versão: ${info.version}`);
+  console.log(`[AutoUpdater] Versão disponível: ${info.version}`);
+  console.log(`[AutoUpdater] Versão atual: ${appVersion}`);
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
   dialog.showMessageBox({
@@ -64,23 +74,26 @@ autoUpdater.on("update-available", (info) => {
 autoUpdater.on("update-not-available", (info) => {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("[AutoUpdater] ℹ️ Nenhuma atualização disponível");
-  console.log(`[AutoUpdater] Versão atual: ${info.version}`);
+  console.log(`[AutoUpdater] Versão atual: ${appVersion}`);
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 });
 
 autoUpdater.on("error", (err) => {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.error("[AutoUpdater] ❌ ERRO:", err);
+  console.error("[AutoUpdater] Stack:", err.stack);
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-  dialog.showErrorBox(
-    "Erro na Atualização",
-    `Não foi possível verificar atualizações: ${err.message}`
-  );
+  if (!isDev) {
+    dialog.showErrorBox(
+      "Erro na Atualização",
+      `Não foi possível verificar atualizações: ${err.message}`
+    );
+  }
 });
 
 autoUpdater.on("download-progress", (progressObj) => {
-  console.log(`[AutoUpdater] 📥 Download: ${Math.round(progressObj.percent)}%`);
+  console.log(`[AutoUpdater] 📥 Download: ${Math.round(progressObj.percent)}% - ${Math.round(progressObj.bytesPerSecond / 1024)}KB/s`);
 });
 
 autoUpdater.on("update-downloaded", (info) => {
@@ -582,14 +595,35 @@ app.whenReady().then(() => {
   ipcMain.on("notification", (event, message: string) => {
     if (!message || typeof message !== 'string') return;
     const sanitizedMessage = String(message).replace(/[`\\$']/g, '\\$&').replace(/"/g, '\\"');
-    event.sender.executeJavaScript(`...`)
-      .catch(error => console.error('[Notification] Erro:', error));
+    event.sender.executeJavaScript(`
+      (function() {
+        const notification = document.createElement('div');
+        notification.textContent = "${sanitizedMessage}";
+        notification.style.cssText = 'position:fixed;top:20px;right:20px;background:#333;color:#fff;padding:15px;border-radius:5px;z-index:9999';
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000);
+      })();
+    `).catch(error => console.error('[Notification] Erro:', error));
   });
 
   if (!isDev) {
     console.log("[AutoUpdater] Verificando atualizações na inicialização...");
-    setTimeout(() => autoUpdater.checkForUpdates().catch(error => console.error("[AutoUpdater] Erro:", error)), 3000);
-    setInterval(() => autoUpdater.checkForUpdates(), 10 * 60 * 1000);
+    setTimeout(() => {
+      autoUpdater.checkForUpdates()
+        .then(result => {
+          console.log("[AutoUpdater] Resultado da verificação:", result);
+        })
+        .catch(error => {
+          console.error("[AutoUpdater] Erro ao verificar:", error);
+        });
+    }, 3000);
+    
+    setInterval(() => {
+      console.log("[AutoUpdater] Verificação periódica iniciada...");
+      autoUpdater.checkForUpdates();
+    }, 10 * 60 * 1000);
+  } else {
+    console.log("[AutoUpdater] Modo desenvolvimento - AutoUpdater desabilitado");
   }
 
   app.on("activate", () => {
