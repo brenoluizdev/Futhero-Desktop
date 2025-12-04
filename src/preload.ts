@@ -1,11 +1,11 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 const originalSend = ipcRenderer.send.bind(ipcRenderer);
-(ipcRenderer as any).send = function(channel: string, ...args: any[]) {
+(ipcRenderer as any).send = function (channel: string, ...args: any[]) {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('[IPC INTERCEPTOR] Canal:', channel);
   console.log('[IPC INTERCEPTOR] Args:', args);
-  
+
   args.forEach((arg, index) => {
     console.log(`[IPC INTERCEPTOR] Arg ${index}:`, typeof arg, arg);
     try {
@@ -18,9 +18,9 @@ const originalSend = ipcRenderer.send.bind(ipcRenderer);
       }
     }
   });
-  
+
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  
+
   try {
     return originalSend(channel, ...args);
   } catch (error: any) {
@@ -62,7 +62,11 @@ const futheroLauncherAPI = {
 
   toggleUnlimitedFPS: () => ipcRenderer.invoke("toggleUnlimitedFPS"),
   isUnlockedFps: () => ipcRenderer.invoke("isUnlockedFps"),
-  
+
+  closeWindow: () => {
+    ipcRenderer.send("close-window");
+  },
+
   setFpsLimit: (limit: number | null) => ipcRenderer.invoke("setFpsLimit", limit),
   getFpsLimit: () => ipcRenderer.invoke("getFpsLimit"),
   getFpsConfig: () => ipcRenderer.invoke("getFpsConfig"),

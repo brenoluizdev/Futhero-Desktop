@@ -5,6 +5,7 @@ import { GameUrls, GameType } from "./types/games.types";
 import { autoUpdater } from "electron-updater";
 import { GameManager } from "./handlers/GameManager";
 import { BonkHandler } from "./handlers/BonkHandler";
+import { ADS_CONTENT, getRandomAd } from "./types/ads.types";
 
 app.commandLine.appendSwitch('no-sandbox');
 
@@ -40,6 +41,7 @@ const gameManager = new GameManager();
 
 let mainWindow: BrowserWindow | null = null;
 let joinWindow: BrowserWindow | null = null;
+let adWindow: BrowserWindow | null = null;
 
 autoUpdater.on("checking-for-update", () => {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -205,6 +207,86 @@ function createWindow(gameType?: GameType) {
   });
 }
 
+function createAdWindow() {
+  if (adWindow && !adWindow.isDestroyed()) {
+    adWindow.focus();
+    return;
+  }
+
+  console.log('[AdWindow] Criando janela de anúncio...');
+
+  const randomAd = getRandomAd();
+  console.log('[AdWindow] Anúncio selecionado:', randomAd.id);
+
+  adWindow = new BrowserWindow({
+    width: 550,
+    height: 650,
+    minHeight: 500,
+    maxHeight: 800,
+    frame: false,
+    transparent: false,
+    resizable: true,
+    alwaysOnTop: true,
+    center: true,
+    icon: fs.existsSync(iconPath) ? iconPath : undefined,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      nodeIntegration: false,
+      contextIsolation: true,
+      sandbox: false
+    }
+  });
+
+  adWindow.webContents.on('did-finish-load', () => {
+    adWindow?.webContents.executeJavaScript(`
+      localStorage.setItem('currentAd', '${JSON.stringify(randomAd).replace(/'/g, "\\'")}');
+      window.dispatchEvent(new Event('DOMContentLoaded'));
+    `);
+  });
+
+  const adPath = path.join(__dirname, "pages", "ad-window.html");
+  console.log('[AdWindow] Carregando página:', adPath);
+  
+  adWindow.loadFile(adPath);
+
+  adWindow.on('closed', () => {
+    console.log('[AdWindow] Janela de anúncio fechada');
+    adWindow = null;
+  });
+
+  setTimeout(() => {
+    if (adWindow && !adWindow.isDestroyed()) {
+      console.log('[AdWindow] Fechando anúncio automaticamente (timeout)');
+      adWindow.close();
+    }
+  }, 45000);
+}
+
+function shouldShowAd(): boolean {
+  return true;
+  const lastAdShown = parseInt(fs.readFileSync(
+    path.join(app.getPath('userData'), 'last-ad-shown.txt'),
+    'utf-8'
+  ).trim() || '0', 10);
+
+  const now = Date.now();
+  const hoursSinceLastAd = (now - lastAdShown) / (1000 * 60 * 60);
+
+  return hoursSinceLastAd >= 5;
+}
+
+function saveAdTimestamp() {
+  const userDataPath = app.getPath('userData');
+  const filePath = path.join(userDataPath, 'last-ad-shown.txt');
+
+  if (!fs.existsSync(userDataPath)) {
+    fs.mkdirSync(userDataPath, { recursive: true });
+  }
+
+  fs.writeFileSync(filePath, Date.now().toString(), 'utf-8');
+  console.log('[AdWindow] Timestamp do anúncio salvo');
+}
+
 function getMime(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase();
   const mimeTypes: Record<string, string> = {
@@ -279,6 +361,24 @@ app.whenReady().then(() => {
     console.log('[Launcher] Nenhuma flag de jogo detectada. Abrindo o seletor.');
     createWindow();
   }
+
+  setTimeout(() => {
+    try {
+      if (shouldShowAd()) {
+        console.log('[AdWindow] Mostrando anúncio de inicialização...');
+        createAdWindow();
+        saveAdTimestamp();
+      } else {
+        console.log('[AdWindow] Anúncio já foi exibido recentemente');
+      }
+    } catch (error) {
+      console.error('[AdWindow] Erro ao verificar/mostrar anúncio:', error);
+      createAdWindow();
+      saveAdTimestamp();
+    }
+  }, 3000);
+
+  ipcMain.on("close-window", () => mainWindow?.close());
 
   ipcMain.on("switch-game", (event, type: string) => {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

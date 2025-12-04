@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Futhero - Anúncio</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a0a00 50%, #2a1505 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-y: auto;
+      padding: 20px;
+      position: relative;
+    }
+
+    /* Background effects */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(circle at 25% 25%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(251, 191, 36, 0.1) 0%, transparent 50%);
+      animation: pulse 4s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(249, 115, 22, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(249, 115, 22, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .ad-container {
+      background: rgba(23, 23, 23, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 60px 50px 50px;
+      max-width: 550px;
+      width: 100%;
+      box-shadow: 
+        0 0 60px rgba(249, 115, 22, 0.2),
+        0 20px 80px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      position: relative;
+      animation: slideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      margin: auto;
+      border: 1px solid rgba(249, 115, 22, 0.15);
+      z-index: 10;
+    }
+
+    .ad-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(249, 115, 22, 0.5), transparent);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-40px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .close-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      color: white;
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 24px;
+      font-weight: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 1000;
+      box-shadow: 
+        0 4px 20px rgba(249, 115, 22, 0.4),
+        0 0 0 0 rgba(249, 115, 22, 0.4);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .close-btn:hover {
+      background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%);
+      transform: rotate(90deg) scale(1.15);
+      box-shadow: 
+        0 6px 30px rgba(249, 115, 22, 0.6),
+        0 0 0 8px rgba(249, 115, 22, 0.1);
+    }
+
+    .close-btn:active {
+      transform: rotate(90deg) scale(1);
+    }
+
+    .qr-code-section {
+      text-align: center;
+      margin-bottom: 30px;
+      animation: fadeIn 0.6s ease-out 0.2s both;
+    }
+
+    .qr-code-section img {
+      max-width: 220px;
+      height: auto;
+      border-radius: 16px;
+      border: 2px solid rgba(249, 115, 22, 0.3);
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.98);
+      box-shadow: 
+        0 8px 32px rgba(249, 115, 22, 0.2),
+        0 0 0 1px rgba(249, 115, 22, 0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .qr-code-section img:hover {
+      transform: scale(1.05);
+    }
+
+    .ad-title {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 18px;
+      text-align: center;
+      letter-spacing: -0.5px;
+      animation: fadeIn 0.6s ease-out 0.3s both;
+      text-shadow: 0 0 40px rgba(249, 115, 22, 0.3);
+    }
+
+    .ad-message {
+      font-size: 17px;
+      color: #a3a3a3;
+      line-height: 1.7;
+      text-align: center;
+      margin-bottom: 35px;
+      animation: fadeIn 0.6s ease-out 0.4s both;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .ad-buttons {
+      display: flex;
+      gap: 14px;
+      flex-direction: column;
+    }
+
+    .ad-button {
+      padding: 16px 28px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      text-decoration: none;
+      text-align: center;
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ad-button::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+    }
+
+    .ad-button:hover::before {
+      transform: translateX(100%);
+    }
+
+    .ad-button.primary {
+      background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+      color: white;
+      box-shadow: 
+        0 4px 20px rgba(249, 115, 22, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(251, 146, 60, 0.5);
+    }
+
+    .ad-button.primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 
+        0 8px 30px rgba(249, 115, 22, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .ad-button.primary:active {
+      transform: translateY(-1px);
+    }
+
+    .ad-button.secondary {
+      background: rgba(38, 38, 38, 0.8);
+      color: #e5e5e5;
+      border: 1px solid rgba(249, 115, 22, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .ad-button.secondary:hover {
+      background: rgba(51, 51, 51, 0.9);
+      border-color: rgba(249, 115, 22, 0.4);
+      transform: translateY(-3px);
+      box-shadow: 
+        0 6px 20px rgba(249, 115, 22, 0.15),
+        0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .ad-button.secondary:active {
+      transform: translateY(-1px);
+    }
+
+    .qr-info {
+      display: none;
+      margin-top: 30px;
+      padding: 30px;
+      background: linear-gradient(135deg, rgba(38, 38, 38, 0.8) 0%, rgba(23, 23, 23, 0.9) 100%);
+      border-radius: 20px;
+      text-align: center;
+      border: 1px solid rgba(249, 115, 22, 0.2);
+      box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .qr-info.show {
+      display: block;
+      animation: expandIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes expandIn {
+      from { 
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+      }
+      to { 
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .qr-title {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .qr-image-container {
+      margin: 25px 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .qr-image-container img {
+      max-width: 280px;
+      width: 100%;
+      height: auto;
+      border-radius: 16px;
+      border: 2px solid rgba(249, 115, 22, 0.3);
+      background: rgba(255, 255, 255, 0.98);
+      padding: 15px;
+      box-shadow: 
+        0 12px 40px rgba(249, 115, 22, 0.25),
+        0 0 0 1px rgba(249, 115, 22, 0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .qr-image-container img:hover {
+      transform: scale(1.05);
+    }
+
+    .qr-instructions {
+      font-size: 15px;
+      color: #a3a3a3;
+      line-height: 1.8;
+      margin-top: 20px;
+      padding: 18px;
+      background: rgba(23, 23, 23, 0.6);
+      border-radius: 12px;
+      border: 1px solid rgba(249, 115, 22, 0.1);
+    }
+
+    .qr-instructions strong {
+      color: #f97316;
+      display: block;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+
+    .qr-instructions em {
+      color: #fbbf24;
+      font-style: normal;
+    }
+
+    .back-btn {
+      background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      margin-top: 20px;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      font-weight: 600;
+      box-shadow: 
+        0 4px 16px rgba(249, 115, 22, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(251, 146, 60, 0.5);
+    }
+
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 
+        0 6px 24px rgba(249, 115, 22, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .back-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Floating decorations */
+    .decoration {
+      position: fixed;
+      pointer-events: none;
+      opacity: 0.15;
+      z-index: 1;
+    }
+
+    .decoration.rocket {
+      top: 15%;
+      left: 10%;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .decoration.zap {
+      top: 30%;
+      right: 15%;
+      animation: float 8s ease-in-out infinite 1s;
+    }
+
+    .decoration.shield {
+      bottom: 20%;
+      left: 15%;
+      animation: float 7s ease-in-out infinite 2s;
+    }
+
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+      }
+      50% {
+        transform: translateY(-20px) rotate(10deg);
+      }
+    }
+
+    /* Responsividade */
+    @media (max-width: 600px) {
+      .ad-container {
+        padding: 70px 30px 35px;
+        margin: 10px;
+      }
+
+      .ad-title {
+        font-size: 26px;
+      }
+
+      .ad-message {
+        font-size: 15px;
+      }
+
+      .ad-button {
+        padding: 14px 22px;
+        font-size: 15px;
+      }
+
+      .qr-image-container img,
+      .qr-code-section img {
+        max-width: 200px;
+      }
+
+      .close-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+    }
+
+    @media (max-height: 700px) {
+      body {
+        padding: 15px;
+      }
+
+      .ad-container {
+        padding: 60px 35px 35px;
+      }
+
+      .close-btn {
+        top: 12px;
+        right: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Floating decorations -->
+  <div class="decoration rocket">🚀</div>
+  <div class="decoration zap">⚡</div>
+  <div class="decoration shield">🛡️</div>
+
+  <button class="close-btn" id="closeBtn">×</button>
+
+  <div class="ad-container">
+    <div class="qr-code-section" id="qrCodeSection" style="display: none;">
+      <img id="qrCodeImage" alt="QR Code" />
+    </div>
+
+    <h1 class="ad-title" id="adTitle">Carregando...</h1>
+    <p class="ad-message" id="adMessage">Por favor, aguarde...</p>
+    
+    <div class="ad-buttons" id="adButtons"></div>
+
+    <div class="qr-info" id="qrInfo">
+      <div class="qr-title">
+        <span>📱</span>
+        <span>Escaneie o QR Code</span>
+      </div>
+      
+      <div class="qr-image-container">
+        <img id="donateQrImage" src="app://assets/images/donate_qr.png" alt="QR Code de Doação" />
+      </div>
+      
+      <div class="qr-instructions">
+        <strong>Como doar:</strong>
+        1. Abra o app do seu banco<br>
+        2. Escaneie o QR Code acima<br>
+        3. Confirme o pagamento<br>
+        <br>
+        <em>Obrigado pelo apoio! 💚</em>
+      </div>
+      
+      <button class="back-btn" onclick="toggleQrCode()">← Voltar</button>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const adData = JSON.parse(localStorage.getItem('currentAd') || '{}');
+      
+      if (adData.title) {
+        document.getElementById('adTitle').textContent = adData.title;
+        document.getElementById('adMessage').textContent = adData.message;
+        
+        if (adData.qrCode) {
+          const qrSection = document.getElementById('qrCodeSection');
+          const qrImage = document.getElementById('qrCodeImage');
+          qrImage.src = adData.qrCode;
+          qrSection.style.display = 'block';
+        }
+        
+        const buttonsContainer = document.getElementById('adButtons');
+        buttonsContainer.innerHTML = '';
+        
+        adData.buttons.forEach((button, index) => {
+          const btn = document.createElement('button');
+          btn.className = `ad-button ${button.style || 'primary'}`;
+          btn.textContent = button.text;
+          btn.style.animationDelay = `${0.5 + index * 0.1}s`;
+          btn.style.animation = 'fadeIn 0.6s ease-out both';
+          
+          if (button.url) {
+            btn.onclick = () => {
+              window.futheroLauncherAPI.openExternal(button.url);
+            };
+          } else if (button.action === 'show-qr') {
+            btn.onclick = () => {
+              toggleQrCode();
+            };
+          }
+          
+          buttonsContainer.appendChild(btn);
+        });
+      }
+
+      document.getElementById('closeBtn').addEventListener('click', () => {
+        window.close();
+      });
+
+      const qrInfo = document.getElementById('qrInfo');
+      const observer = new MutationObserver(() => {
+        if (qrInfo.classList.contains('show')) {
+          document.body.style.overflow = 'auto';
+        }
+      });
+      observer.observe(qrInfo, { attributes: true, attributeFilter: ['class'] });
+    });
+
+    function toggleQrCode() {
+      const qrInfo = document.getElementById('qrInfo');
+      const isShowing = qrInfo.classList.contains('show');
+      
+      qrInfo.classList.toggle('show');
+      
+      if (!isShowing) {
+        setTimeout(() => {
+          qrInfo.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+      }
+    }
+
+    window.addEventListener('scroll', () => {
+      const closeBtn = document.getElementById('closeBtn');
+      closeBtn.style.position = 'fixed';
+    });
+  </script>
+</body>
+</html>
