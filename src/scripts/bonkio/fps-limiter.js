@@ -11,11 +11,6 @@
     const fpsLimit = fpsConfig.fpsLimit;
     const isUnlimited = fpsConfig.unlimitedFPS;
     
-    if (!fpsLimit && !isUnlimited) {
-        console.log("[FPS Limiter] ✅ Modo padrão (nativo) - Nenhuma modificação será aplicada");
-        return;
-    }
-
     if (isUnlimited) {
         console.log("[FPS Limiter] ✅ Modo FPS ilimitado ativo - Nenhum limitador será aplicado");
         return;
@@ -27,38 +22,41 @@
     }
     window.__futheroFpsLimiterActive = true;
     
-    console.log(`[FPS Limiter] 🎯 Aplicando limite de ${fpsLimit} FPS...`);
+    const targetFps = fpsLimit || 60;
+    console.log(`[FPS Limiter] 🎯 Aplicando limite de ${targetFps} FPS...`);
 
-    const frameInterval = 1000 / fpsLimit;
+    const targetFrameTime = 1000 / targetFps;
 
     function createLimiter(win, contextName) {
         const originalRAF = win.requestAnimationFrame.bind(win);
         const originalCAF = win.cancelAnimationFrame.bind(win);
         
-        let lastTime = win.performance.now();
+        let lastFrameTime = win.performance.now();
         let rafCallbacks = new Map();
         let nextId = 1;
 
         win.requestAnimationFrame = function(callback) {
-            const now = win.performance.now();
-            const timeSinceLastFrame = now - lastTime;
+            const callbackId = nextId++;
             
-            if (timeSinceLastFrame >= frameInterval) {
-                lastTime = now - (timeSinceLastFrame % frameInterval);
+            const now = win.performance.now();
+            const timeSinceLastFrame = now - lastFrameTime;
+            
+            if (timeSinceLastFrame < targetFrameTime) {
+                const delay = targetFrameTime - timeSinceLastFrame;
+                
+                const timeoutId = win.setTimeout(() => {
+                    rafCallbacks.delete(callbackId);
+                    lastFrameTime = win.performance.now();
+                    
+                    callback(lastFrameTime);
+                }, delay);
+                
+                rafCallbacks.set(callbackId, timeoutId);
+                return callbackId;
+            } else {
+                lastFrameTime = now;
                 return originalRAF(callback);
             }
-            
-            const delay = frameInterval - timeSinceLastFrame;
-            const id = nextId++;
-            
-            const timeoutId = win.setTimeout(() => {
-                rafCallbacks.delete(id);
-                lastTime = win.performance.now();
-                callback(lastTime);
-            }, delay);
-            
-            rafCallbacks.set(id, timeoutId);
-            return id;
         };
 
         win.cancelAnimationFrame = function(id) {
@@ -71,7 +69,7 @@
             }
         };
 
-        console.log(`[FPS Limiter] ✅ Aplicado em ${contextName}`);
+        console.log(`[FPS Limiter] ✅ Aplicado em ${contextName} com limite de ${targetFps} FPS`);
     }
 
     createLimiter(window, "window");
@@ -84,12 +82,19 @@
         }
 
         try {
-            createLimiter(iframe.contentWindow, "iframe");
+            if (!iframe.contentWindow.document.body) {
+                setTimeout(injectIframe, 100);
+                return;
+            }
+            
+            createLimiter(iframe.contentWindow, "iframe (jogo)");
         } catch (e) {
-            console.error("[FPS Limiter] Erro iframe:", e);
+            console.error("[FPS Limiter] Erro ao aplicar no iframe:", e);
         }
     }
 
     injectIframe();
-    console.log(`[FPS Limiter] ✅ Sistema ativo - ${fpsLimit} FPS`);
+    
+    console.log(`[FPS Limiter] ✅ Sistema ativo - ${targetFps} FPS`);
+    console.log(`[FPS Limiter] Modo: ${fpsLimit ? 'Customizado' : 'Padrão (60 FPS)'}`);
 })();

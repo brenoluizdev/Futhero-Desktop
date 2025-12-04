@@ -2,6 +2,8 @@ import { BrowserWindow, app } from "electron";
 import { BaseGameHandler, GameConfig } from "./BaseGameHandler";
 
 export class BonkHandler extends BaseGameHandler {
+  private currentWindow: BrowserWindow | null = null;
+
   constructor(scriptsBasePath: string) {
     super("BONKIO", "https://bonk.io", scriptsBasePath);
   }
@@ -24,6 +26,7 @@ export class BonkHandler extends BaseGameHandler {
       console.log('[BONKIO] ⚡ Aplicando flags de FPS ilimitado...');
       app.commandLine.appendSwitch("disable-frame-rate-limit");
       app.commandLine.appendSwitch("disable-gpu-vsync");
+      app.commandLine.appendSwitch("disable-renderer-backgrounding");
     } else {
       console.log('[BONKIO] ✅ Modo FPS padrão/limitado - Sem flags adicionais');
     }
@@ -31,6 +34,7 @@ export class BonkHandler extends BaseGameHandler {
 
   onPageLoad(window: BrowserWindow): void {
     console.log("[BONKIO] Página carregada, aplicando customizações e injeção de scripts...");
+    this.currentWindow = window;
 
     window.webContents.executeJavaScript(`
       (function() {
@@ -47,17 +51,19 @@ export class BonkHandler extends BaseGameHandler {
       })();
     `);
 
+    this.applyFpsSettings(window);
+    this.injectScripts(window);
+  }
+
+  private applyFpsSettings(window: BrowserWindow): void {
     if (this.config.unlimitedFPS) {
       console.log("[BONKIO] 🚀 Configurando FPS ilimitado via webContents...");
       window.webContents.setFrameRate(0);
     } else if (this.config.fpsLimit) {
       console.log(`[BONKIO] 🎯 Configurando FPS limitado: ${this.config.fpsLimit}`);
     } else {
-      console.log("[BONKIO] ✅ Usando FPS padrão do jogo");
-      window.webContents.setFrameRate(60);
+      console.log("[BONKIO] ✅ Usando FPS padrão do jogo (60 FPS)");
     }
-
-    this.injectScripts(window);
   }
 
   async toggleUnlimitedFPS(): Promise<boolean> {
@@ -69,13 +75,33 @@ export class BonkHandler extends BaseGameHandler {
     const oldUnlimited = this.config.unlimitedFPS;
     const newValue = !oldUnlimited;
 
-    this.updateConfig({ 
+    this.updateConfig({
       unlimitedFPS: newValue,
       fpsLimit: newValue ? null : (this.config.fpsLimit || null)
     });
-    
+
     console.log(`[BONKIO FPS] Estado alterado: ${newValue ? 'DESBLOQUEADO' : 'BLOQUEADO'}`);
     console.log(`[BONKIO FPS] Config atual:`, this.config);
+
+    if (this.currentWindow) {
+      if (newValue) {
+        this.currentWindow.webContents.setFrameRate(0);
+        console.log("[BONKIO] ⚡ FPS ilimitado ativado dinamicamente");
+        
+        this.currentWindow.webContents.executeJavaScript(`
+          (function() {
+            if (window.__futheroFpsLimiterActive) {
+              console.log("[FPS Limiter] Desativando limitador...");
+              window.__futheroFpsLimiterActive = false;
+              location.reload();
+            }
+          })();
+        `);
+      } else {
+        console.log("[BONKIO] 🔒 FPS ilimitado desativado, recarregando página...");
+        this.currentWindow.webContents.reload();
+      }
+    }
 
     return true;
   }
@@ -94,17 +120,20 @@ export class BonkHandler extends BaseGameHandler {
     const oldLimit = this.config.fpsLimit;
     const oldUnlimited = this.config.unlimitedFPS;
 
-    const newUnlimitedState = false;
-
     this.updateConfig({
       fpsLimit: limit,
-      unlimitedFPS: newUnlimitedState
+      unlimitedFPS: false
     });
 
-    console.log(`[BONKIO FPS] Limite definido: ${limit ?? 'padrão (nativo)'}`);
+    console.log(`[BONKIO FPS] Limite definido: ${limit ?? 'padrão (60 FPS)'}`);
     console.log(`[BONKIO FPS] Config atual:`, this.config);
 
-    return oldUnlimited !== newUnlimitedState;
+    if (this.currentWindow) {
+      console.log("[BONKIO] 🔄 Recarregando página para aplicar novo limite de FPS...");
+      this.currentWindow.webContents.reload();
+    }
+
+    return true;
   }
 
   getFpsLimit(): number | null {
@@ -119,7 +148,7 @@ export class BonkHandler extends BaseGameHandler {
     const unlimitedFPS = this.config.unlimitedFPS || false;
     const fpsLimit = this.config.fpsLimit || null;
     const isDefault = !unlimitedFPS && fpsLimit === null;
-    
+
     return {
       unlimitedFPS,
       fpsLimit,
