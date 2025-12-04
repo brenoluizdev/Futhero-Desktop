@@ -10,8 +10,6 @@ app.commandLine.appendSwitch('no-sandbox');
 
 require("dotenv").config();
 
-const isDev = require("electron-is-dev");
-
 const appVersion = app.getVersion();
 const isBeta = appVersion.includes("-beta");
 
@@ -21,16 +19,10 @@ console.log(`[Launcher] É beta? ${isBeta}`);
 autoUpdater.logger = console;
 autoUpdater.autoDownload = false;
 autoUpdater.allowDowngrade = false;
+autoUpdater.allowPrerelease = false;
+autoUpdater.channel = "latest";
 
-if (isBeta) {
-  console.log("[AutoUpdater] Versão beta detectada. Permitindo prereleases.");
-  autoUpdater.allowPrerelease = true;
-  autoUpdater.channel = "beta";
-} else {
-  console.log("[AutoUpdater] Versão de produção detectada.");
-  autoUpdater.allowPrerelease = false;
-  autoUpdater.channel = "latest";
-}
+console.log("[AutoUpdater] Versão de produção detectada.");
 
 const gameManager = new GameManager();
 
@@ -83,13 +75,6 @@ autoUpdater.on("error", (err) => {
   console.error("[AutoUpdater] ❌ ERRO:", err);
   console.error("[AutoUpdater] Stack:", err.stack);
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-
-  if (!isDev) {
-    dialog.showErrorBox(
-      "Erro na Atualização",
-      `Não foi possível verificar atualizações: ${err.message}`
-    );
-  }
 });
 
 autoUpdater.on("download-progress", (progressObj) => {
@@ -156,9 +141,7 @@ function createWindow(gameType?: GameType) {
   });
 
   if (!gameType) {
-    const selectorPath = isDev
-      ? path.join(__dirname, "pages/game-selector.html")
-      : path.join(__dirname, "pages", "game-selector.html");
+    const selectorPath = path.join(__dirname, "pages", "game-selector.html");
 
     console.log(`[Launcher] Carregando seletor de jogos de: ${selectorPath}`);
     mainWindow.loadFile(selectorPath).catch(error => {
@@ -311,14 +294,14 @@ app.whenReady().then(() => {
 
     if (oldState !== newState) {
       const response = await dialog.showMessageBox({
-        type: "info", 
+        type: "info",
         title: "Mudança de FPS",
-        message: newState 
-          ? "FPS ilimitado ativado! O launcher precisa ser reiniciado." 
+        message: newState
+          ? "FPS ilimitado ativado! O launcher precisa ser reiniciado."
           : "FPS limitado reativado! O launcher precisa ser reiniciado.",
-        detail: "Deseja reiniciar agora?", 
-        buttons: ["Reiniciar", "Depois"], 
-        defaultId: 0, 
+        detail: "Deseja reiniciar agora?",
+        buttons: ["Reiniciar", "Depois"],
+        defaultId: 0,
         cancelId: 1
       });
 
@@ -328,7 +311,7 @@ app.whenReady().then(() => {
         app.quit();
       }
     }
-    
+
     return newState;
   });
 
@@ -342,14 +325,14 @@ app.whenReady().then(() => {
 
     if (needsAppRestart && wasUnlimited) {
       const response = await dialog.showMessageBox({
-        type: "info", 
+        type: "info",
         title: "Limite de FPS Configurado",
-        message: newLimit 
-          ? `FPS limitado a ${newLimit}! O launcher precisa ser reiniciado.` 
+        message: newLimit
+          ? `FPS limitado a ${newLimit}! O launcher precisa ser reiniciado.`
           : "Modo padrão ativado! O launcher precisa ser reiniciado.",
-        detail: "Deseja reiniciar agora?", 
-        buttons: ["Reiniciar", "Depois"], 
-        defaultId: 0, 
+        detail: "Deseja reiniciar agora?",
+        buttons: ["Reiniciar", "Depois"],
+        defaultId: 0,
         cancelId: 1
       });
 
@@ -360,14 +343,14 @@ app.whenReady().then(() => {
       }
     } else if (mainWindow) {
       const response = await dialog.showMessageBox({
-        type: "info", 
+        type: "info",
         title: "Limite de FPS Configurado",
-        message: newLimit 
-          ? `FPS limitado a ${newLimit}! A página precisa ser recarregada.` 
+        message: newLimit
+          ? `FPS limitado a ${newLimit}! A página precisa ser recarregada.`
           : "Modo padrão ativado! A página precisa ser recarregada.",
-        detail: "Deseja recarregar agora?", 
-        buttons: ["Recarregar", "Depois"], 
-        defaultId: 0, 
+        detail: "Deseja recarregar agora?",
+        buttons: ["Recarregar", "Depois"],
+        defaultId: 0,
         cancelId: 1
       });
 
@@ -392,8 +375,8 @@ app.whenReady().then(() => {
 
   ipcMain.handle("getFpsConfig", () => {
     const handler = gameManager.getHandler(GameType.BONKIO);
-    return handler instanceof BonkHandler 
-      ? handler.getFpsConfig() 
+    return handler instanceof BonkHandler
+      ? handler.getFpsConfig()
       : { unlimitedFPS: false, fpsLimit: null, isDefault: true };
   });
 
@@ -491,13 +474,7 @@ app.whenReady().then(() => {
       }
     });
 
-    let selectorPath: string;
-
-    if (isDev) {
-      selectorPath = path.join(__dirname, "pages/join-room.html");
-    } else {
-      selectorPath = path.join(__dirname, "pages", "join-room.html");
-    }
+    let selectorPath = path.join(__dirname, "pages", "join-room.html");
 
     console.log('[JoinWindow] Carregando:', selectorPath);
     console.log('[JoinWindow] Preload path:', path.join(__dirname, "preload.js"));
@@ -606,25 +583,21 @@ app.whenReady().then(() => {
     `).catch(error => console.error('[Notification] Erro:', error));
   });
 
-  if (!isDev) {
-    console.log("[AutoUpdater] Verificando atualizações na inicialização...");
-    setTimeout(() => {
-      autoUpdater.checkForUpdates()
-        .then(result => {
-          console.log("[AutoUpdater] Resultado da verificação:", result);
-        })
-        .catch(error => {
-          console.error("[AutoUpdater] Erro ao verificar:", error);
-        });
-    }, 3000);
-    
-    setInterval(() => {
-      console.log("[AutoUpdater] Verificação periódica iniciada...");
-      autoUpdater.checkForUpdates();
-    }, 10 * 60 * 1000);
-  } else {
-    console.log("[AutoUpdater] Modo desenvolvimento - AutoUpdater desabilitado");
-  }
+  console.log("[AutoUpdater] Verificando atualizações na inicialização...");
+  setTimeout(() => {
+    autoUpdater.checkForUpdates()
+      .then(result => {
+        console.log("[AutoUpdater] Resultado da verificação:", result);
+      })
+      .catch(error => {
+        console.error("[AutoUpdater] Erro ao verificar:", error);
+      });
+  }, 3000);
+
+  setInterval(() => {
+    console.log("[AutoUpdater] Verificação periódica iniciada...");
+    autoUpdater.checkForUpdates();
+  }, 10 * 60 * 1000);
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
