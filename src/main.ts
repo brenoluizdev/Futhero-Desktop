@@ -12,10 +12,8 @@ app.commandLine.appendSwitch('no-sandbox');
 require("dotenv").config();
 
 const appVersion = app.getVersion();
-const isBeta = appVersion.includes("-beta");
 
 console.log(`[Launcher] Versão do app: ${appVersion}`);
-console.log(`[Launcher] É beta? ${isBeta}`);
 
 autoUpdater.logger = console;
 autoUpdater.autoDownload = false;
@@ -166,7 +164,7 @@ function createWindow(gameType?: GameType) {
   mainWindow.on("page-title-updated", (event) => {
     event.preventDefault();
     if (mainWindow && !mainWindow.isDestroyed()) {
-      const title = isBeta ? "Futhero Launcher BETA" : "Futhero Launcher";
+      const title = "Futhero Launcher";
       mainWindow.setTitle(title);
     }
   });

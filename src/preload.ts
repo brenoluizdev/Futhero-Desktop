@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 
 const originalSend = ipcRenderer.send.bind(ipcRenderer);
+
 (ipcRenderer as any).send = function (channel: string, ...args: any[]) {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('[IPC INTERCEPTOR] Canal:', channel);
