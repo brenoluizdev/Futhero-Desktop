@@ -26,9 +26,7 @@ export abstract class BaseGameHandler {
   ) {
     const gameIdLower = gameId.toLowerCase();
     
-    const configDir = isDev
-        ? path.join(app.getAppPath(), 'src', 'configs') 
-        : path.join(process.resourcesPath, 'configs');
+    const configDir = path.join(process.resourcesPath, 'configs');
         
     this.configPath = path.join(configDir, `${gameIdLower}-config.json`);
 

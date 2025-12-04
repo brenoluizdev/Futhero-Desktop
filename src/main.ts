@@ -119,12 +119,7 @@ autoUpdater.on("update-downloaded", (info) => {
   });
 });
 
-const iconPath = path.join(
-  process.resourcesPath,
-  "assets",
-  "images",
-  isBeta ? "icon-beta.ico" : "icon.ico"
-);
+const iconPath = path.join(__dirname, "assets", "images", "icon.ico");
 
 function createWindow(gameType?: GameType) {
   console.log(`[Launcher] Criando janela para o jogo: ${gameType || 'Seletor'}`);
@@ -246,7 +241,7 @@ function createAdWindow() {
 
   const adPath = path.join(__dirname, "pages", "ad-window.html");
   console.log('[AdWindow] Carregando página:', adPath);
-  
+
   adWindow.loadFile(adPath);
 
   adWindow.on('closed', () => {

@@ -28,7 +28,7 @@ jobs:
       - name: Build app
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run build:win
+        run: npm run build:win && npm run build:mac && npm run build:linux
 
       - name: Upload Release Artifacts
         uses: softprops/action-gh-release@v2

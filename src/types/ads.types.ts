@@ -32,7 +32,7 @@ export const ADS_CONTENT: AdContent[] = [
         style: 'primary' 
       },
       { 
-        text: '📱 Ver QR Code PIX', 
+        text: '📱 Ver QR Code', 
         action: 'show-qr', 
         style: 'secondary' 
       },

@@ -1,6 +1,6 @@
 {
   "enableFPSControl": true,
-  "unlimitedFPS": true,
+  "unlimitedFPS": false,
   "fpsLimit": null,
   "customScriptsPath": "bonkio",
   "webPreferences": {
