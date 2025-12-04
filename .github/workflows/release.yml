@@ -6,6 +6,9 @@ on:
       - "v*.*.*"
       - "!v*.*.*-beta.*"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
