@@ -29,7 +29,7 @@ This Code of Conduct applies:
 
 ## Enforcement
 Instances of abusive, harassing, or unacceptable behavior may be reported to the maintainers via:
-- Email: **security@futhero.dev**  
+- Email: **futhero.contact@gmail.com**  
 - Discord DM to a project maintainer  
 
 All reports will be handled confidentially.
