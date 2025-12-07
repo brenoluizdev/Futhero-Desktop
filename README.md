@@ -1,3 +1,7 @@
+[![Watch the video](https://github.com/brenoluizdev/Futhero-Desktop/blob/main/assets/images/banner.png?raw=true)](https://youtu.be/c8OFBn18QJA)
+
+Watch the video: https://youtu.be/c8OFBn18QJA
+
 # ⚡ Futhero – Bonk.io & Haxball Secure Launcher
 
 ### A Safe, Fast, and Enhanced Desktop Experience for **Bonk.io** and **Haxball**
