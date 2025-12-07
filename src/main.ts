@@ -526,6 +526,11 @@ app.whenReady().then(() => {
           return { success: false, error: 'element_not_found' };
         }
 
+        const gameRenderer = iframeDoc.querySelector('#gamerenderer');
+        if (gameRenderer) {
+          gameRenderer.style.textAlign = 'center';
+        }
+
         const bgReplay = iframeDoc.querySelector('#bgreplay');
         if (bgReplay) {
           bgReplay.style.textAlign = 'center';
