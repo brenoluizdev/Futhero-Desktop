@@ -3239,7 +3239,7 @@ jsonargs.rooms = jsonargs.rooms.filter(function(e){
             }
             if (keys.length > 0) {
                 if (playerids[myid].playerData && playerids[myid].playerData2) {
-                    if (aimbot || heavybot || staystill || vtolbot) {
+                    /* if (aimbot || heavybot || staystill || vtolbot) {
                         var targetid = -1;
                         var distances = {};
                         if (Gdocument.getElementById("ingamecountdown").style["visibility"] == "hidden") {
@@ -3475,7 +3475,7 @@ jsonargs.rooms = jsonargs.rooms.filter(function(e){
                             }
                         }
 
-                    }
+                    } */
                     if (FollowCam) {
                         if (playerids[myid].playerData?.transform) {
 
@@ -4068,7 +4068,7 @@ jsonargs.rooms = jsonargs.rooms.filter(function(e){
                             var jsonargs = JSON.parse(args.data.substring(2));
                             currentmap.push(decodeFromDatabase(jsonargs[1]));
                         }
-                        if (args.data.startsWith('42[20,')) {
+                        /* if (args.data.startsWith('42[20,')) {
                             var jsonargs = JSON.parse(args.data.substring(2));
                             if (translating[0]) {
                                 translate(jsonargs[2], "auto", translating[1]).then(function (r) { if (r == jsonargs[2]) { return } displayInChat(playerids[jsonargs[1]].userName + ": " + r, "#DA0808", "#1EBCC1") });
@@ -4107,7 +4107,7 @@ jsonargs.rooms = jsonargs.rooms.filter(function(e){
                                     }
                                 }
                             }
-                        }
+                        } */
                         if (args.data.startsWith('42[32')) {
                             SEND('42[4,{"type":"inactive kick counter"}]');
                         }
@@ -5166,7 +5166,7 @@ scope.hideshowplayers = function (alpha = 0) {
             });
         }
     };
-    scope.help = ["All the commands are:", "/help", "/?", "/advhelp [command]", "/bonk1random", "/bonk1parkour", "/bonk2random","/bonk2parkour" ,"/space", "/rcaps", "/number", "/cursefilter", "/autocorrect", "/pan", "/resetpan", "/translateto [language]", "/translate [language]", "/randomchat", "/speech", "/savedroom", "/clearsavedroom", "/style [R G B]", "/friend [username]", "/maxfps", "/textmode [1-7]", "/followcam", "/autocam", "/zoom [in/out/reset]", "/xray", "/xray [opacity]", "/toggleplayers", "/toggleplayers [opacity]", "/aimbot", "/heavybot", "/vtolbot", "/still", "/echo [username]", "/clearecho", "/remove [username]", "/echotext [text]", "/chatw [username]", "/msg [text]", "/ignorepm [username]", "/record [username]", "/replay", "/stoprecord", "/loadrecording [text]", "/saverecording [text]", "/delrecording [text]", "/scalemap [number]", "/translatemap [number] [number]", "/rotatemap [number]", "/volume [0-100]", "/pmusers", "/pollstat", "/lobby", "/score", "/team [letter]", "/mode [mode]", "/scroll", "/hidechat", "/showchat", "/notify", "/stopnotify", "/support", "Host commands are:", "/startqp", "/stopqp", "/pauseqp", "/revqp", "/next", "/nextafter [seconds]", "/previous", "/shuffle", "/instaqp", "/jukebox [link]", "/pausejukebox", "/resetjukebox", "/playjukebox", "/freejoin", "/recmode", "/recteam", "/defaultmode [mode]", "/start", "/balanceA [number]", "/moveA [letter]", "/moveT [letter] [letter]", "/balanceT [letter] [number]", "/killA", "/rounds [number]", "/roundsperqp [number]", "/disablekeys [keys]", "/jointext [text]", "/jointeam [letter]", "/wintext [text]", "/autorecord", "/afkkill [number]", "/ban [username]", "/cban [username]", "/uncban [username]", "/kill [username]", "/brighten [number]", "/colorshift [number]", "/resetpoll", "/addoption [text]", "/deloption [letter]", "/startpoll [seconds]", "/endpoll", "/autokick", "/autoban", "/sandbox", "Sandbox commands are:", "/addplayer [number]", "/addname [text]", "/delplayer [number]", "/copy [username]", "Debugging commands are:", "/eval [code]", "/debugger", "Hotkeys are:", "Alt L", "Alt B", "Alt C", "Alt I", "Alt <", "Alt >", "Alt N", "Alt V", "Alt G", "Alt H", "Alt J", "Alt O", "Host hotkeys are:", "Alt S", "Alt P", "Alt T", "Alt E", "Alt K", "Alt M", "Alt Q", "Alt A", "Alt D", "Alt F", "Alt R", "Alt [", "Alt ]"];
+    scope.help = ["All the commands are:", "/help", "/?", "/advhelp [command]", "/bonk1random", "/bonk1parkour", "/bonk2random","/bonk2parkour" ,"/space", "/rcaps", "/number", "/cursefilter", "/autocorrect", "/pan", "/resetpan", "/translateto [language]", "/translate [language]", "/randomchat", "/speech", "/savedroom", "/clearsavedroom", "/style [R G B]", "/friend [username]", "/maxfps", "/textmode [1-7]", "/followcam", "/autocam", "/zoom [in/out/reset]", "/xray", "/xray [opacity]", "/toggleplayers", "/toggleplayers [opacity]", /* "/aimbot", "/heavybot", "/vtolbot", */ "/still", /* "/echo [username]", */ /* "/clearecho", */ "/remove [username]", "/echotext [text]", "/chatw [username]", "/msg [text]", "/ignorepm [username]", "/record [username]", "/replay", "/stoprecord", "/loadrecording [text]", "/saverecording [text]", "/delrecording [text]", "/scalemap [number]", "/translatemap [number] [number]", "/rotatemap [number]", "/volume [0-100]", "/pmusers", "/pollstat", "/lobby", "/score", "/team [letter]", "/mode [mode]", "/scroll", "/hidechat", "/showchat", "/notify", "/stopnotify", "/support", "Host commands are:", "/startqp", "/stopqp", "/pauseqp", "/revqp", "/next", "/nextafter [seconds]", "/previous", "/shuffle", "/instaqp", "/jukebox [link]", "/pausejukebox", "/resetjukebox", "/playjukebox", "/freejoin", "/recmode", "/recteam", "/defaultmode [mode]", "/start", "/balanceA [number]", "/moveA [letter]", "/moveT [letter] [letter]", "/balanceT [letter] [number]", "/killA", "/rounds [number]", "/roundsperqp [number]", "/disablekeys [keys]", "/jointext [text]", "/jointeam [letter]", "/wintext [text]", "/autorecord", "/afkkill [number]", "/ban [username]", "/cban [username]", "/uncban [username]", "/kill [username]", "/brighten [number]", "/colorshift [number]", "/resetpoll", "/addoption [text]", "/deloption [letter]", "/startpoll [seconds]", "/endpoll", "/autokick", "/autoban", "/sandbox", "Sandbox commands are:", "/addplayer [number]", "/addname [text]", "/delplayer [number]", "/copy [username]", "Debugging commands are:", "/eval [code]", "/debugger", "Hotkeys are:", "Alt L", "Alt B", "Alt C", "Alt I", "Alt <", "Alt >", "Alt N", "Alt V", "Alt G", "Alt H", "Alt J", "Alt O", "Host hotkeys are:", "Alt S", "Alt P", "Alt T", "Alt E", "Alt K", "Alt M", "Alt Q", "Alt A", "Alt D", "Alt F", "Alt R", "Alt [", "Alt ]"];
 
     scope.adv_help = {
         "help": "Shows all command names.",
@@ -5183,10 +5183,10 @@ scope.hideshowplayers = function (alpha = 0) {
         "savedroom": "Displays all the rooms you have saved, you can remove individual ones from the saved rooms by clicking \"Remove\".",
         "maxfps": "Toggles maxfps. When maxfps is on, your fps will be increased.",
         "clearsavedroom": "Clears all the saved rooms.",
-        "echo": "Echoes a username. It copies the username's chat messages.",
-        "echotext": "Sets a message when someone who is echoed chats. \"message\" will get replaced by the person's message. \"username\" will get replaced by the person's username.",
+        // "echo": "Echoes a username. It copies the username's chat messages.",
+        //"echotext": "Sets a message when someone who is echoed chats. \"message\" will get replaced by the person's message. \"username\" will get replaced by the person's username.",
         "remove": "Removes username from echo list. You will not echo that username anymore.",
-        "clearecho": "Clears echo list. You will not echo anyone anymore.",
+        //"clearecho": "Clears echo list. You will not echo anyone anymore.",
         "chatw": "It private chats with username. Type /msg to message that username.",
         "msg": "Messages with what username you are chatting with. Type /chatw to chat with a username.",
         "ignorepm": "Ignores the username's private chat messages. To unignore, type '/ignorepm [username]'.",
@@ -5213,9 +5213,9 @@ scope.hideshowplayers = function (alpha = 0) {
         "autocam": "Zooms in/out enough for you to see everyone on the screen.",
         "zoom": "Zooms in, out, or resets zoom.",
         "xray": "Removes all shapes that don't have a shadow. This means all non-physics shapes will be hidden.",
-        "aimbot": "Toggles aimbot. Aimbot will aim for you in arrows or death arrows mode.",
-        "heavybot": "Enables heavy bot. Heavy bot will heavy right before collision. Turn this off when player collision is off, because heavy bot will still function.",
-        "vtolbot": "Activates a nueral network that plays VTOL for you.",
+        // "aimbot": "Toggles aimbot. Aimbot will aim for you in arrows or death arrows mode.",
+        // "heavybot": "Enables heavy bot. Heavy bot will heavy right before collision. Turn this off when player collision is off, because heavy bot will still function.",
+        // "vtolbot": "Activates a nueral network that plays VTOL for you.",
         "still": "Saves your position, and tries to reach it constantly. This is useful in parkour if you want to go afk. Use Alt+W instead, because this feature will fail when you are in chat.",
         "lagbot": "Makes your movements very laggy. Type '/lagbot 0' to turn it off.",
         "hidechat": "Hides ingame chat. Type '/showchat' to show it again.",
@@ -5301,8 +5301,8 @@ scope.hideshowplayers = function (alpha = 0) {
         "Alt A": "Skips the map if quickplay is on.",
         "Alt D": "Goes to previous map if quickplay is on.",
         "Alt F": "Toggles freejoin. If freejoin is on, starts the game instantly if there are 1 or less players currently playing.",
-        "Alt O": "Enables heavy bot. Heavy bot will heavy right before collision. Turn this off when player collision is off, because heavy bot will still function.",
-        "Alt U": "Toggles aimbot. Aimbot will aim for you in arrows or death arrows mode.",
+        // "Alt O": "Enables heavy bot. Heavy bot will heavy right before collision. Turn this off when player collision is off, because heavy bot will still function.",
+        //"Alt U": "Toggles aimbot. Aimbot will aim for you in arrows or death arrows mode.",
         "Alt P": "Only pauses or unpauses the quickplay cycle due to round end. '/next', '/previous' still work. Type 'pauseqp' to unpause quickplay.",
         "Alt R": "Toggles the visibility of all players except yourself.",
         "Alt I": "Opens debugger.",
@@ -5581,7 +5581,7 @@ scope.hideshowplayers = function (alpha = 0) {
         Gdocument.getElementById("newbonklobby").style["visibility"] = "visible";
     };
     scope.commandhandle = function (chat_val) {
-        if (chat_val.substring(1, 6) == "echo " && chat_val.replace(/^\s+|\s+$/g, '').length >= 7) {
+        /* if (chat_val.substring(1, 6) == "echo " && chat_val.replace(/^\s+|\s+$/g, '').length >= 7) {
             if (chat_val.substring(6).replace(/^\s+|\s+$/g, '').replaceAll("'", "").replaceAll('"', "") == username) {
                 displayInChat("You cannot echo yourself.", "#DA0808", "#1EBCC1");
                 return "";
@@ -5627,7 +5627,7 @@ scope.hideshowplayers = function (alpha = 0) {
             displayInChat("Cleared the echo list.", "#DA0808", "#1EBCC1");
             return "";
         }
-        else if (chat_val.substring(1, 11) == "randomchat") {
+        else */ if (chat_val.substring(1, 11) == "randomchat") {
             if (randomchat == true) {
                 displayInChat("Random chat is now off.", "#DA0808", "#1EBCC1");
                 randomchat = false;
@@ -6042,7 +6042,7 @@ else if (chat_val.substring(1, 12) == "bonk1random") {
             displayInChat("Reset pan.", "#DA0808", "#1EBCC1");
             return "";
         }
-        else if (chat_val.substring(1, 7) == "aimbot") {
+        /* else if (chat_val.substring(1, 7) == "aimbot") {
             if (aimbot == true) {
                 displayInChat("Aimbot is now off.", "#DA0808", "#1EBCC1");
                 aimbot = false;
@@ -6054,7 +6054,7 @@ else if (chat_val.substring(1, 12) == "bonk1random") {
             }
 
             return "";
-        }
+        } */
         else if (chat_val.substring(1, 8) == "volume " && chat_val.replace(/^\s+|\s+$/g, '').length >= 9) {
             var text = chat_val.substring(8).replace(/^\s+|\s+$/g, '');
             if (!isNaN(parseInt(text))) {
@@ -6094,7 +6094,7 @@ else if (chat_val.substring(1, 12) == "bonk1random") {
 
             return "";
         }
-        else if (chat_val.substring(1, 9) == "heavybot") {
+        /* else if (chat_val.substring(1, 9) == "heavybot") {
             if (heavybot == true) {
                 displayInChat("Heavy bot is now off.", "#DA0808", "#1EBCC1");
                 heavybot = false;
@@ -6119,7 +6119,7 @@ else if (chat_val.substring(1, 12) == "bonk1random") {
             }
 
             return "";
-        }
+        } */
 else if (chat_val.substring(1, 14) == "toggleplayers") {
             var alpha = 0;
             if (chat_val.substring(15).length > 0) {
@@ -8521,7 +8521,7 @@ else if (keycode == "KeyR") {
                 displayInChat("Reset pan.", "#DA0808", "#1EBCC1");
                 return "";
             }
-            if (keycode == "KeyO") {
+            /* if (keycode == "KeyO") {
                 if (heavybot == true) {
                     displayInChat("Heavy bot is now off.", "#DA0808", "#1EBCC1");
                     heavybot = false;
@@ -8532,8 +8532,8 @@ else if (keycode == "KeyR") {
                     getplayerkeys();
                 }
                 e.preventDefault();
-            }
-            if (keycode == "KeyU") {
+            } */
+/*             if (keycode == "KeyU") {
                 if (aimbot == true) {
                     displayInChat("Aimbot is now off.", "#DA0808", "#1EBCC1");
                     aimbot = false;
@@ -8545,7 +8545,7 @@ else if (keycode == "KeyR") {
                 }
                 e.preventDefault();
             }
-            if (keycode == "KeyM AAAAAAAAAAA") {
+ */            if (keycode == "KeyM AAAAAAAAAAA") {
                 if (staystill == true) {
                     displayInChat("Still is now off.", "#DA0808", "#1EBCC1");
                     staystill = false;
