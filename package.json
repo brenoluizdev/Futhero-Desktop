@@ -9,7 +9,7 @@
     "build:win": "npm run build && electron-builder --win",
     "build:linux": "npm run build && electron-builder --linux",
     "build:mac": "npm run build && electron-builder --mac",
-    "copy-assets": "xcopy assets dist\\assets /E /I /Y",
+    "copy-assets": "node scripts/copy-assets.js",
     "copy-scripts-static": "node scripts/copy-static.js",
     "start": "electron .",
     "generate-icons": "node scripts/generate-icons.js"
