@@ -17,7 +17,7 @@ const appVersion = app.getVersion();
 console.log(`[Launcher] Versão do app: ${appVersion}`);
 
 autoUpdater.logger = console;
-autoUpdater.autoDownload = false;
+autoUpdater.autoDownload = true;
 autoUpdater.allowDowngrade = false;
 autoUpdater.allowPrerelease = false;
 autoUpdater.channel = "latest";
@@ -58,24 +58,13 @@ autoUpdater.on("update-available", (info) => {
   console.log(`[AutoUpdater] Versão disponível: ${info.version}`);
   console.log(`[AutoUpdater] Versão atual: ${appVersion}`);
   console.log("[AutoUpdater] Info completa:", JSON.stringify(info, null, 2));
+  console.log("[AutoUpdater] Iniciando download automático...");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-
-  dialog.showMessageBox({
-    type: "info",
-    title: "Atualização Disponível",
-    message: `Nova versão ${info.version} disponível!`,
-    detail: "Deseja baixar e instalar agora?",
-    buttons: ["Sim", "Depois"],
-    defaultId: 0,
-    cancelId: 1
-  }).then((result) => {
-    if (result.response === 0) {
-      console.log("[AutoUpdater] Usuário aceitou, iniciando download...");
-      autoUpdater.downloadUpdate();
-    } else {
-      console.log("[AutoUpdater] Usuário recusou a atualização");
-    }
-  });
+  
+  // Notificar usuário (opcional, mas bom para feedback visual não intrusivo)
+  if (mainWindow) {
+    mainWindow.webContents.send('notification', `Baixando atualização v${info.version}...`);
+  }
 });
 
 autoUpdater.on("update-not-available", (info) => {
@@ -102,21 +91,17 @@ autoUpdater.on("update-downloaded", (info) => {
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("[AutoUpdater] ✅ Atualização baixada!");
   console.log(`[AutoUpdater] Versão: ${info.version}`);
+  console.log("[AutoUpdater] Instalando automaticamente em 5 segundos...");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-  dialog.showMessageBox({
-    type: "info",
-    title: "Atualização Pronta",
-    message: `Versão ${info.version} foi baixada.`,
-    detail: "O app será reiniciado para instalar a atualização.",
-    buttons: ["Reiniciar Agora", "Depois"],
-    defaultId: 0
-  }).then((result) => {
-    if (result.response === 0) {
-      console.log("[AutoUpdater] Instalando e reiniciando...");
-      setImmediate(() => autoUpdater.quitAndInstall(false, true));
-    }
-  });
+  if (mainWindow) {
+    mainWindow.webContents.send('notification', `Atualização v${info.version} pronta! Reiniciando em 5s...`);
+  }
+
+  // Aguarda 5 segundos para o usuário ler a notificação e então reinicia
+  setTimeout(() => {
+    autoUpdater.quitAndInstall(false, true);
+  }, 5000);
 });
 
 const iconPath = path.join(__dirname, "assets", "images", "icon.ico");
