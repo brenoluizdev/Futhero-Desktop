@@ -1,6 +1,6 @@
 {
   "name": "futhero-launcher",
-  "version": "1.4.14",
+  "version": "1.4.15",
   "description": "A secure bonk.io and haxball launcher with frontend manipulation capabilities.",
   "main": "dist/main.js",
   "scripts": {
@@ -14,10 +14,10 @@
     "start": "electron .",
     "generate-icons": "node scripts/generate-icons.js",
 
-    "publish_1": "git version patch",
+    "publish_1": "git version minor",
     "publish_2": "git push",
     "publish_3": "git push --tags",
-    "publish": "npm run publish_1 && npm run publish_2 && npm run publish_3 && npm run publish_4"
+    "publish": "npm run publish_1 && npm run publish_2 && npm run publish_3"
   },
   "author": "brenoluizdev",
   "license": "ISC",
