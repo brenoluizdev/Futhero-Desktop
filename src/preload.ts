@@ -110,6 +110,10 @@ const futheroLauncherAPI = {
   logout: () => ipcRenderer.invoke('auth:logout'),
   onAuthSuccess: (callback: () => void) => {
     ipcRenderer.on('auth:success', () => callback());
+  },
+  
+  onLaunchError: (callback: (error: string) => void) => {
+    ipcRenderer.on('error:game-launch', (_, error) => callback(error));
   }
 };
 

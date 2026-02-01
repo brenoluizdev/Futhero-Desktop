@@ -889,6 +889,15 @@
     window.addEventListener('DOMContentLoaded', () => {
       checkAuth();
       loadGames();
+
+      if (window.futheroLauncherAPI && window.futheroLauncherAPI.onLaunchError) {
+        window.futheroLauncherAPI.onLaunchError((error) => {
+          console.error('Erro ao iniciar jogo:', error);
+          const loading = document.getElementById('loading');
+          loading.classList.remove('active');
+          alert('Erro ao iniciar jogo: ' + error);
+        });
+      }
     });
   </script>
 </body>

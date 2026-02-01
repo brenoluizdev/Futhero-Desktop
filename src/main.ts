@@ -375,7 +375,11 @@ app.whenReady().then(() => {
     }
   }, 3000);
 
-  // Auth IPCs
+  // Auth IPCs - Limpando handlers anteriores para evitar duplicação
+  ipcMain.removeHandler('auth:check');
+  ipcMain.removeHandler('auth:login');
+  ipcMain.removeHandler('auth:logout');
+  
   ipcMain.handle('auth:check', async () => {
     return await authManager.validateToken();
   });
@@ -390,24 +394,46 @@ app.whenReady().then(() => {
 
   ipcMain.on("close-window", () => mainWindow?.close());
 
+  // Removendo listeners antigos para evitar duplicação
+  ipcMain.removeAllListeners('auth:start');
+  
   ipcMain.on('auth:start', () => authManager.startLoginFlow());
-  ipcMain.handle('auth:logout', () => authManager.logout());
-  ipcMain.handle('auth:check', () => authManager.validateToken());
-
+  // Removidos handlers duplicados que causavam erro (linhas 394-395)
+  
+  ipcMain.removeAllListeners('switch-game');
   ipcMain.on("switch-game", (event, type: string) => {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`[Launcher] 🎮 switch-game recebido: ${type}`);
+    console.log(`[Launcher] 🎮 switch-game recebido. Raw type: "${type}"`);
+    console.log(`[Launcher] Tipos válidos:`, Object.keys(GameUrls));
 
-    const gameType = type as GameType;
+    // Normalização para garantir compatibilidade
+    let gameType = type as GameType;
+    
+    // Tenta encontrar o tipo correspondente (case-insensitive) se não achar direto
+    if (!GameUrls[gameType]) {
+        const foundType = Object.keys(GameUrls).find(k => k.toUpperCase() === type.toUpperCase());
+        if (foundType) {
+            gameType = foundType as GameType;
+            console.log(`[Launcher] ⚠️ Tipo corrigido para: ${gameType}`);
+        }
+    }
+
     if (!GameUrls[gameType]) {
       console.error(`[Launcher] ❌ Tipo de jogo inválido: "${type}"`);
+      event.sender.send('error:game-launch', `Jogo inválido: ${type}`);
       return;
     }
 
     console.log(`[Launcher] Preparando para reiniciar e lançar ${gameType}...`);
 
+    // Em desenvolvimento, precisamos ajustar os argumentos
+    // Se não estiver empacotado, o primeiro argumento é o executável do electron e o segundo é o script (.)
+    // Mas app.relaunch() em dev geralmente lida com isso se passarmos os args certos.
+    
     const args = process.argv.slice(1).filter(arg => !arg.startsWith('--launch-game'));
     args.push(`--launch-game=${gameType}`);
+    
+    console.log('[Launcher] Args para relaunch:', args);
 
     app.relaunch({ args });
     app.quit();
