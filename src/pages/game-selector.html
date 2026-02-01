@@ -399,6 +399,70 @@
       max-width: 90%;
     }
 
+    /* Auth Overlay */
+    .auth-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(10px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      transition: opacity 0.5s ease;
+    }
+    
+    .auth-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .auth-btn {
+      background: #5865F2; /* Discord Blue */
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.2s;
+      margin-top: 20px;
+    }
+
+    .auth-btn:hover {
+      background: #4752C4;
+    }
+
+    .logout-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.8);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      backdrop-filter: blur(5px);
+      transition: all 0.2s;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 0, 0, 0.2);
+      border-color: rgba(255, 0, 0, 0.4);
+      color: white;
+    }
+
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.6; }
@@ -657,7 +721,74 @@
     <div class="loading-text">Iniciando jogo...</div>
   </div>
 
+  <button class="logout-btn" onclick="logout()" id="logoutBtn" style="display: none;">
+    <span>🚪</span> Sair
+  </button>
+
+  <div class="auth-overlay" id="authOverlay">
+    <div class="logo-wrapper">
+      <div class="logo-bg">
+        <div style="font-size: 48px;">🔒</div>
+      </div>
+    </div>
+    <h2 style="margin-bottom: 10px;">Autenticação Necessária</h2>
+    <p style="color: rgba(255,255,255,0.7); max-width: 400px; text-align: center;">Para acessar o Futhero Launcher, você precisa fazer login com sua conta do Discord.</p>
+    
+    <button class="auth-btn" onclick="startLogin()">
+      <span>Login com Discord</span>
+    </button>
+    
+    <p id="authStatus" style="margin-top: 15px; font-size: 14px; color: #aaa;"></p>
+  </div>
+
   <script>
+    const authOverlay = document.getElementById('authOverlay');
+    const authStatus = document.getElementById('authStatus');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    async function checkAuth() {
+      if (!window.futheroLauncherAPI) {
+        console.warn('API não disponível. Pulando auth (dev mode).');
+        if(authOverlay) authOverlay.classList.add('hidden');
+        return;
+      }
+
+      if(authStatus) authStatus.textContent = 'Verificando token...';
+      const isValid = await window.futheroLauncherAPI.checkAuth();
+
+      if (isValid) {
+        if(authOverlay) authOverlay.classList.add('hidden');
+        if(logoutBtn) logoutBtn.style.display = 'flex';
+      } else {
+        if(authOverlay) authOverlay.classList.remove('hidden');
+        if(authStatus) authStatus.textContent = '';
+        if(logoutBtn) logoutBtn.style.display = 'none';
+      }
+    }
+
+    function startLogin() {
+      if (window.futheroLauncherAPI) {
+        if(authStatus) authStatus.textContent = 'Aguardando login no navegador...';
+        window.futheroLauncherAPI.startAuth();
+        
+        window.futheroLauncherAPI.onAuthSuccess(() => {
+          if(authStatus) authStatus.textContent = 'Sucesso! Entrando...';
+          setTimeout(() => {
+             checkAuth();
+          }, 1000);
+        });
+      }
+    }
+
+    async function logout() {
+      if (confirm('Tem certeza que deseja sair?')) {
+        if (window.futheroLauncherAPI) {
+          await window.futheroLauncherAPI.logout();
+          checkAuth();
+        }
+      }
+    }
+
     async function loadGames() {
       try {
         let config = null;
@@ -755,7 +886,10 @@
       return false;
     }
 
-    window.addEventListener('DOMContentLoaded', loadGames);
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+      loadGames();
+    });
   </script>
 </body>
 </html>

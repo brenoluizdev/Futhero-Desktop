@@ -103,6 +103,14 @@ const futheroLauncherAPI = {
   getCurrentUrl: () => window.location.href,
 
   log: (message: string) => console.log(`[Futhero] ${message}`),
+
+  // Auth Methods
+  startAuth: () => ipcRenderer.send('auth:start'),
+  checkAuth: () => ipcRenderer.invoke('auth:check'),
+  logout: () => ipcRenderer.invoke('auth:logout'),
+  onAuthSuccess: (callback: () => void) => {
+    ipcRenderer.on('auth:success', () => callback());
+  }
 };
 
 contextBridge.exposeInMainWorld("futheroLauncherAPI", futheroLauncherAPI);

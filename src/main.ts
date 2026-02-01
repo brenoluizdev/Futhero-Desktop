@@ -6,6 +6,7 @@ import { autoUpdater } from "electron-updater";
 import { GameManager } from "./handlers/GameManager";
 import { BonkHandler } from "./handlers/BonkHandler";
 import { ADS_CONTENT, getRandomAd } from "./types/ads.types";
+import { AuthManager } from "./AuthManager";
 
 app.commandLine.appendSwitch('no-sandbox');
 
@@ -36,6 +37,7 @@ console.log("  - Owner: brenoluizdev");
 console.log("  - Repo: Futhero-Desktop");
 
 const gameManager = new GameManager();
+const authManager = new AuthManager();
 
 let mainWindow: BrowserWindow | null = null;
 let joinWindow: BrowserWindow | null = null;
@@ -149,6 +151,8 @@ function createWindow(gameType?: GameType) {
     icon: fs.existsSync(iconPath) ? iconPath : undefined,
     webPreferences: webPrefs,
   });
+
+  authManager.setMainWindow(mainWindow);
 
   if (!gameType) {
     const selectorPath = path.join(__dirname, "pages", "game-selector.html");
@@ -371,7 +375,24 @@ app.whenReady().then(() => {
     }
   }, 3000);
 
+  // Auth IPCs
+  ipcMain.handle('auth:check', async () => {
+    return await authManager.validateToken();
+  });
+
+  ipcMain.handle('auth:login', async () => {
+    await authManager.startLoginFlow();
+  });
+
+  ipcMain.handle('auth:logout', async () => {
+    return authManager.logout();
+  });
+
   ipcMain.on("close-window", () => mainWindow?.close());
+
+  ipcMain.on('auth:start', () => authManager.startLoginFlow());
+  ipcMain.handle('auth:logout', () => authManager.logout());
+  ipcMain.handle('auth:check', () => authManager.validateToken());
 
   ipcMain.on("switch-game", (event, type: string) => {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -694,6 +715,19 @@ app.whenReady().then(() => {
         setTimeout(() => notification.remove(), 3000);
       })();
     `).catch(error => console.error('[Notification] Erro:', error));
+  });
+
+  // Auth Handlers
+  ipcMain.on('auth:start', () => {
+    authManager.startLoginFlow();
+  });
+
+  ipcMain.handle('auth:check', async () => {
+    return await authManager.validateToken();
+  });
+
+  ipcMain.handle('auth:logout', () => {
+    return authManager.logout();
   });
 
   if (app.isPackaged) {
