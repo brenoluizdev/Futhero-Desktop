@@ -12,7 +12,12 @@
     "copy-assets": "node scripts/copy-assets.js",
     "copy-scripts-static": "node scripts/copy-static.js",
     "start": "electron .",
-    "generate-icons": "node scripts/generate-icons.js"
+    "generate-icons": "node scripts/generate-icons.js",
+
+    "publish_1": "git version patch",
+    "publish_2": "git push",
+    "publish_3": "git push --tags",
+    "publish": "npm run publish_1 && npm run publish_2 && npm run publish_3 && npm run publish_4"
   },
   "author": "brenoluizdev",
   "license": "ISC",
