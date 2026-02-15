@@ -162,6 +162,38 @@ export class AuthManager {
                     res.writeHead(400);
                     res.end('Token não encontrado.');
                 }
+            } else if (parsedUrl.pathname === '/auth-failed') {
+                const reason = (parsedUrl.query.reason as string) || 'Falha na autenticação.';
+                if (this.mainWindow) {
+                    this.mainWindow.webContents.send('auth:failed', { reason });
+                }
+                res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+                const html = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erro de Login - Futhero</title>
+    <style>
+        body { background: #0a0a0a; color: white; font-family: system-ui, -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .box { padding: 32px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255, 80, 80, 0.3); border-radius: 16px; text-align: center; width: 420px; max-width: 90%; }
+        h1 { color: #ff6262; margin: 0 0 10px; font-size: 24px; }
+        p { color: #aaa; line-height: 1.5; margin: 8px 0; }
+        .reason { color: #ddd; font-size: 14px; margin-top: 8px; }
+        .tip { color: #999; font-size: 13px; margin-top: 18px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>Não foi possível autenticar</h1>
+        <p>Ocorreu um erro ao tentar fazer login pelo Discord.</p>
+        <p class="reason">${reason}</p>
+        <p class="tip">Você pode fechar esta aba e tentar novamente no launcher.</p>
+    </div>
+</body>
+</html>`;
+                res.end(html);
             } else {
                 res.writeHead(404);
                 res.end('Not Found');
