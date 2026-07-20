@@ -72,7 +72,8 @@
       "location=yes,toolbar=yes,zoom=no,hidenavigationbuttons=no,hideurlbar=no,allowInlineMediaPlayback=yes,mediaPlaybackRequiresUserAction=no"
     );
 
-    var injected = false;
+    var targetHost = safeHostname(url);
+    var mainLoaded = false;
 
     iab.addEventListener("loadstart", function () {
       loading.classList.add("active");
@@ -80,7 +81,7 @@
 
     iab.addEventListener("loadstop", function () {
       loading.classList.remove("active");
-      injected = true;
+      mainLoaded = true;
       // Pequeno atraso para dar tempo do jogo montar seu próprio DOM inicial,
       // mesma estratégia usada na versão desktop (BaseGameHandler.injectScripts).
       setTimeout(function () {
@@ -89,6 +90,19 @@
     });
 
     iab.addEventListener("loaderror", function (event) {
+      // O InAppBrowser dispara "loaderror" para QUALQUER sub-recurso que falhe
+      // dentro da página (iframes de anúncio, trackers de terceiros, etc — os
+      // mesmos que removeAds.js remove), não só para a navegação principal.
+      // Só tratamos como falha real se for a própria página do jogo E ela
+      // ainda não tiver carregado com sucesso.
+      var failedHost = safeHostname(event && event.url);
+      var isMainFrame = !mainLoaded && failedHost && failedHost === targetHost;
+
+      if (!isMainFrame) {
+        console.warn("[Futhero] Falha em sub-recurso (ignorado):", event && event.url, event && event.message);
+        return;
+      }
+
       loading.classList.remove("active");
       console.error("[Futhero] Erro ao carregar jogo:", event);
       alert("Erro ao carregar o jogo: " + (event && event.message ? event.message : "desconhecido"));
@@ -97,6 +111,14 @@
     iab.addEventListener("exit", function () {
       loading.classList.remove("active");
     });
+  }
+
+  function safeHostname(url) {
+    try {
+      return new URL(url).hostname;
+    } catch (e) {
+      return null;
+    }
   }
 
   function openExternalLink(url) {
