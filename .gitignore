@@ -122,3 +122,11 @@ dist
 package-lock.json
 release/
 .early.coverage
+
+# Mobile (Capacitor/Android)
+mobile/android/app/build/
+mobile/android/build/
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/android/capacitor-cordova-android-plugins/build/
+mobile/build-output/

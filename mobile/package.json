@@ -1,0 +1,23 @@
+{
+  "name": "futhero-mobile",
+  "version": "1.0.0",
+  "description": "Futhero Launcher - versão mobile (bonk.io e Haxball) baseada em Capacitor",
+  "main": "index.js",
+  "scripts": {
+    "sync": "cap sync android",
+    "build:apk": "cap sync android && cd android && gradlew.bat assembleDebug",
+    "open:android": "cap open android"
+  },
+  "keywords": [],
+  "author": "brenoluizdev",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/app": "^8.1.1",
+    "@capacitor/core": "^8.4.2",
+    "cordova-plugin-inappbrowser": "^7.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.4.2"
+  }
+}

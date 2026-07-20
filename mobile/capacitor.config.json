@@ -1,0 +1,9 @@
+{
+  "appId": "com.brenoluizdev.futhero",
+  "appName": "Futhero",
+  "webDir": "www",
+  "backgroundColor": "#0a0a0a",
+  "android": {
+    "allowMixedContent": true
+  }
+}
