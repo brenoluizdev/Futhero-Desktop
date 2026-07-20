@@ -1,0 +1,21 @@
+{
+  "BONKIO": [
+    "scripts/bonkio/jquery.js",
+    "scripts/bonkio/HideNSFW.js",
+    "scripts/bonkio/bonkCommands.js",
+    "scripts/bonkio/fps-limiter.js",
+    "scripts/bonkio/removeAds.js",
+    "scripts/bonkio/hideElements.js",
+    "scripts/bonkio/FullScreen.js",
+    "scripts/bonkio/GlobalChat.js",
+    "scripts/bonkio/joinRoom.js",
+    "scripts/bonkio/searchRooms.js",
+    "scripts/bonkio/showFps.js",
+    "scripts/bonkio/performance/optimizer.js",
+    "scripts/bonkio/ui/menu.js"
+  ],
+  "HAXBALL": [
+    "scripts/haxball/removeAds.js",
+    "scripts/haxball/haxballTools.js"
+  ]
+}

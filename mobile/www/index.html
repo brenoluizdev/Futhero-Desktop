@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="format-detection" content="telephone=no">
+  <title>Futhero Launcher</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="grid-pattern"></div>
+
+  <div class="container">
+    <div class="header">
+      <div class="logo-wrapper">
+        <div class="logo-glow"></div>
+        <div class="logo-bg">
+          <img src="assets/icon.png" alt="Futhero" class="logo-icon">
+        </div>
+      </div>
+
+      <h1 class="logo-text">FUTHERO</h1>
+      <p class="subtitle">Launcher mobile para seus jogos favoritos, com remoção de anúncios e melhorias de interface.</p>
+    </div>
+
+    <p class="disclaimer">
+      Versão mobile experimental. Os jogos abrem em uma janela dedicada dentro do app,
+      com os mesmos scripts de melhoria usados na versão desktop.
+    </p>
+
+    <div class="games-grid" id="gamesGrid"></div>
+
+    <div class="footer">
+      <p>Futhero é open-source e totalmente gratuito</p>
+      <div class="footer-links">
+        <a href="#" id="linkGithub">GitHub</a>
+        <a href="#" id="linkDiscord">Discord</a>
+        <a href="#" id="linkBug">Reportar Bug</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div class="loading-game-name" id="loadingGameName"></div>
+    <div class="loading-text">Iniciando jogo...</div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

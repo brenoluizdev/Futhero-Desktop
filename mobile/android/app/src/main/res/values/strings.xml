@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Futhero</string>
+    <string name="title_activity_main">Futhero</string>
+    <string name="package_name">com.brenoluizdev.futhero</string>
+    <string name="custom_url_scheme">com.brenoluizdev.futhero</string>
+</resources>
