@@ -2,6 +2,10 @@
 
 Watch the video: https://youtu.be/c8OFBn18QJA
 
+[![CI](https://github.com/brenoluizdev/Futhero-Desktop/actions/workflows/ci.yml/badge.svg)](https://github.com/brenoluizdev/Futhero-Desktop/actions/workflows/ci.yml)
+![Electron](https://img.shields.io/badge/Electron-Desktop-47848F?logo=electron&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
+
 # ⚡ Futhero – Bonk.io & Haxball Secure Launcher
 
 ### A Safe, Fast, and Enhanced Desktop Experience for **Bonk.io** and **Haxball**
